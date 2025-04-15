@@ -20,6 +20,14 @@ class Movies {
                 "/gsQJOfeW45KLiQeEIsom94QPQwb.jpg",
                 "2025-02-12",
                 "When a group of radical activists take over an energy company's annual gala, seizing 300 hostages, an ex-soldier turned window cleaner suspended 50 storeys up on the outside of the building must save those trapped inside, including her younger brother."
+            ),
+            Movie(
+                3,
+                "Captain America: Brave New World",
+                "/pzIddUEMWhWzfvLI3TwxUG2wGoi.jpg",
+                "/gsQJOfeW45KLiQeEIsom94QPQwb.jpg",
+                "2025-02-12",
+                "When a group of radical activists take over an energy company's annual gala, seizing 300 hostages, an ex-soldier turned window cleaner suspended 50 storeys up on the outside of the building must save those trapped inside, including her younger brother."
             )
         )
     }
