@@ -41,8 +41,8 @@ fun MovieDetailScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val uiState by viewModel.uiState.collectAsState()
-    val isFavorite = uiState.favorites.any { it.id == movie.id }
+    val uiState by viewModel.uiState.collectAsState() //listen for updates holds the current state (movie + fav) collect state from viewmodel
+    val isFavorite = uiState.favorites.any { it.id == movie.id } //checks for condition from that state and will get updated and recompose ui.state.fav is the list of fav movies stored in Viewmodel and any checks if have the same id as current movie displayed
 
     Column(
         modifier = modifier
