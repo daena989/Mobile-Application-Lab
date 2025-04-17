@@ -2,18 +2,15 @@ package com.example.moviedb2025.ui.screens
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -22,24 +19,25 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.core.net.toUri
 import coil.compose.AsyncImage
 import com.example.moviedb2025.models.Movie
+import com.example.moviedb2025.ui.GenreChips
 import com.example.moviedb2025.utils.Constans
 import com.example.moviedb2025.viewmodel.MovieDBViewModel
-import androidx.compose.runtime.getValue
 
 
 @Composable
 fun MovieDetailScreen(
     movie: Movie,
-    viewModel: MovieDBViewModel = viewModel(),
+    viewModel: MovieDBViewModel,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -94,28 +92,33 @@ fun MovieDetailScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
+        // Genre chips
+        GenreChips(genres = movie.genres, modifier = Modifier.fillMaxWidth())
+        Spacer(modifier = Modifier.height(16.dp))
+
+
         // Links Section
         Column(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            movie.homepage?.let { homepage ->
+            movie.homepage.let { homepage ->
                 LinkCard(text = "Open Homepage") {
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(homepage))
+                    val intent = Intent(Intent.ACTION_VIEW, homepage.toUri())
                     context.startActivity(intent)
                 }
             }
 
-            movie.imdbId?.let { imdbId ->
+            movie.imdbId.let { imdbId ->
                 val imdbUrl = "https://www.imdb.com/title/$imdbId"
                 LinkCard(text = "Open in IMDB") {
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(imdbUrl)).apply {
+                    val intent = Intent(Intent.ACTION_VIEW, imdbUrl.toUri()).apply {
                         setPackage("com.imdb.mobile") // Open in IMDB app
                     }
                     try {
                         context.startActivity(intent)
                     } catch (e: ActivityNotFoundException) {
-                        val fallbackIntent = Intent(Intent.ACTION_VIEW, Uri.parse(imdbUrl))
+                        val fallbackIntent = Intent(Intent.ACTION_VIEW, imdbUrl.toUri())
                         context.startActivity(fallbackIntent)
                     }
                 }

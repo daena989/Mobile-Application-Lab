@@ -20,6 +20,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.moviedb2025.models.Movie
+import com.example.moviedb2025.ui.GenreChips
 import com.example.moviedb2025.utils.Constans
 
 @Composable
@@ -27,9 +28,15 @@ fun MovieListScreen(
     movieList: List<Movie>,
     onMovieListItemClicked: (Movie) -> Unit,
     modifier: Modifier = Modifier) {
-    LazyColumn(modifier = modifier) {
-        items(movieList) { movie ->
-            MovieListItemCard(movie = movie, onMovieListItemClicked, modifier = Modifier.padding(8.dp))
+    Column(modifier = modifier) {
+        LazyColumn {
+            items(movieList) { movie ->
+                MovieListItemCard(
+                    movie = movie,
+                    onMovieListItemClicked = onMovieListItemClicked,
+                    modifier = Modifier.padding(8.dp)
+                )
+            }
         }
     }
 }
@@ -60,13 +67,15 @@ fun MovieListItemCard(movie: Movie,
                     text = movie.title,
                     style = MaterialTheme.typography.headlineSmall
                 )
-                Spacer(modifier = androidx.compose.ui.Modifier.size(8.dp))
+                Spacer(modifier = Modifier.size(8.dp))
 
                 Text(
                     text = movie.releaseDate,
                     style = MaterialTheme.typography.bodySmall
                 )
-                Spacer(modifier = androidx.compose.ui.Modifier.size(8.dp))
+                Spacer(modifier = Modifier.size(8.dp))
+
+                GenreChips(genres = movie.genres)
 
                 Text(
                     text = movie.overview,
@@ -74,7 +83,7 @@ fun MovieListItemCard(movie: Movie,
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis
                 )
-                Spacer(modifier = androidx.compose.ui.Modifier.size(8.dp))
+                Spacer(modifier = Modifier.size(8.dp))
             }
         }
     }

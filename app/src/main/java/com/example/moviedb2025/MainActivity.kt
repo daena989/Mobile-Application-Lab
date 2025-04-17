@@ -9,7 +9,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import com.example.moviedb2025.ui.theme.MovieDB2025Theme
-import com.example.myapplication0.ui.screens.MovieDbApp
+import com.example.moviedb2025.ui.screens.MovieDbApp
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
