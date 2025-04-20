@@ -32,7 +32,4 @@ class MovieDBViewModel : ViewModel() {
         }
     }
 
-    fun isFavorite(movie: Movie): Boolean {
-        return _uiState.value.favorites.any { it.id == movie.id }
-    }
 }
