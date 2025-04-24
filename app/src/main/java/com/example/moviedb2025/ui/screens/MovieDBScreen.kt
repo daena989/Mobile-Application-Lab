@@ -44,8 +44,9 @@ fun MovieDBAppBar(
     currScreen: MovieDBScreen,
     canNavigateBack:Boolean,
     navigateUp: () -> Unit,
-    onFavoritesClick: () -> Unit = {},
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onFavoritesClick: () -> Unit = {}
+
 ){
     TopAppBar(
         title = {Text(stringResource(currScreen.title))},
@@ -103,7 +104,7 @@ fun MovieDbApp(viewModel: MovieDBViewModel = viewModel(),
                 .padding(innerPadding)
         ){
             composable(route = MovieDBScreen.List.name){
-                MovieListScreen(
+                MovieListGridScreen(
                     movieList = Movies().getMovies(),
                     onMovieListItemClicked = { movie ->
                         viewModel.setSelectedMovie(movie)
