@@ -1,0 +1,130 @@
+package com.example.moviedb2025.ui.screens
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import com.example.moviedb2025.models.Movie
+import com.example.moviedb2025.ui.GenreChips
+import com.example.moviedb2025.utils.Constans
+
+@Composable
+fun MovieListGridScreen(
+    movieList: List<Movie>,
+    onMovieListItemClicked: (Movie) -> Unit,
+    modifier: Modifier = Modifier,
+    columns: Int = 2 // You can change this value to set the number of columns
+) {
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(columns),
+        modifier = modifier,
+    ) {
+        items(movieList) { movie ->
+            MovieListGridItemCard(
+                movie = movie,
+                onMovieListItemClicked = onMovieListItemClicked,
+                modifier = Modifier.padding(4.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun MovieListGridItemCard(
+    movie: Movie,
+    onMovieListItemClicked: (Movie) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(450.dp), // fixed height for uniform grid cards
+        onClick = {
+            onMovieListItemClicked(movie)
+        }
+    ) {
+        Column {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp) // Padding around image inside the card
+            ) {
+                AsyncImage(
+                    model = Constans.POSTER_IMAGE_BASE_URL + Constans.POSTER_IMAGE_BASE_WIDTH + movie.posterPath,
+                    contentDescription = movie.title,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(2f / 3f)
+                )
+            }
+            Column(
+                modifier = Modifier
+                    .padding(8.dp)
+                    .fillMaxWidth()
+            ) {
+                Text(
+                    text = movie.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Text(
+                    text = movie.releaseDate,
+                    style = MaterialTheme.typography.bodySmall
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                GenreChips(genres = movie.genres)
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Text(
+                    text = movie.overview,
+                    style = MaterialTheme.typography.bodySmall,
+                    minLines = 1,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+    }
+}
+
+
+@Preview(showBackground = true)
+@Composable
+fun MovieListGridItemCardPreview() {
+    val sampleMovie = Movie(
+        id = 1,
+        title = "A Minecraft Movie",
+        posterPath = "/yFHHfHcUgGAxziP1C3lLt0q2T4s.jpg",
+        backdropPath = "/2Nti3gYAX513wvhp8IiLL6ZDyOm.jpg",
+        releaseDate = "2025-03-31",
+        overview = "Four misfits find themselves struggling with ordinary problems when they are suddenly pulled through a mysterious portal into the Overworld: a bizarre, cubic wonderland that thrives on imagination. To get back home, they'll have to master this world while embarking on a magical quest with an unexpected, expert crafter, Steve.",
+        genres = listOf("Family", "Comedy", "Adventure", "Fantasy"),
+        homepage = "https://www.minecraft-movie.com",
+        imdbId = "tt3566834"
+    )
+
+    MaterialTheme {
+        MovieListGridItemCard(
+            movie = sampleMovie,
+            onMovieListItemClicked = {},
+            modifier = Modifier
+                .padding(8.dp)
+                .width(180.dp) // Set fixed width to simulate grid column
+        )
+    }
+}
+
