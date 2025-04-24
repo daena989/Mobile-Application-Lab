@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.moviedb2025.models.Movie
 import com.example.moviedb2025.ui.GenreChips
-import com.example.moviedb2025.utils.Constans
+import com.example.moviedb2025.utils.Constants
 
 @Composable
 fun MovieListScreen(
@@ -54,7 +54,7 @@ fun MovieListItemCard(movie: Movie,
         Row {
             Box {
                 AsyncImage(
-                    model = Constans.POSTER_IMAGE_BASE_URL + Constans.POSTER_IMAGE_BASE_WIDTH + movie.posterPath,
+                    model = Constants.POSTER_IMAGE_BASE_URL + Constants.POSTER_IMAGE_BASE_WIDTH + movie.posterPath,
                     contentDescription = movie.title,
                     modifier = modifier
                         .width(92.dp)
