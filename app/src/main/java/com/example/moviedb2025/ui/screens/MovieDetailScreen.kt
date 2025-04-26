@@ -30,7 +30,7 @@ import androidx.core.net.toUri
 import coil.compose.AsyncImage
 import com.example.moviedb2025.models.Movie
 import com.example.moviedb2025.ui.GenreChips
-import com.example.moviedb2025.utils.Constans
+import com.example.moviedb2025.utils.Constants
 import com.example.moviedb2025.viewmodel.MovieDBViewModel
 
 
@@ -51,7 +51,7 @@ fun MovieDetailScreen(
     ) {
         Box {
             AsyncImage(
-                model = Constans.BACKDROP_IMAGE_BASE_URL + Constans.BACKDROP_IMAGE_BASE_WIDTH + movie.backdropPath,
+                model = Constants.BACKDROP_IMAGE_BASE_URL + Constants.BACKDROP_IMAGE_BASE_WIDTH + movie.backdropPath,
                 contentDescription = movie.title,
                 modifier = Modifier
                     .fillMaxWidth()
