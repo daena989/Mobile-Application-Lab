@@ -34,6 +34,7 @@ import coil.compose.AsyncImage
 import com.example.moviedb2025.database.MoviesRepository
 import com.example.moviedb2025.models.Movie
 import com.example.moviedb2025.models.MovieResponse
+import com.example.moviedb2025.models.getGenreNames
 import com.example.moviedb2025.ui.GenreChips
 import com.example.moviedb2025.ui.theme.MovieDB2025Theme
 import com.example.moviedb2025.utils.Constants
@@ -105,7 +106,7 @@ fun MovieDetailScreen(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 GenreChips(
-                    genres = movie.genres,
+                    genreIds = movie.genresIds, // Pass genre IDs directly
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -143,6 +144,9 @@ fun MovieDetailScreen(
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
+
+                Text(text = "Homepage: ${movie.homepage ?: "N/A"}")
+                Text(text = "IMDB ID: ${movie.imdbId ?: "N/A"}")
 
                 Text(
                     text = movie.overview,
@@ -195,73 +199,5 @@ fun LinkCard(text: String, onClick: () -> Unit) {
                 style = MaterialTheme.typography.bodyMedium
             )
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewMovieDetailScreen() {
-    MovieDB2025Theme {
-        val dummyViewModel = @SuppressLint("UnrememberedMutableState")
-        object : MovieDBViewModel(FakeMoviesRepository()) {
-            override var favoriteMovies: List<Movie> by mutableStateOf(emptyList())
-        }
-
-        val selectedMovieUiState = SelectedMovieUiState.Success(
-            movie = Movie(
-                1,
-                "A Minecraft Movie",
-                "/yFHHfHcUgGAxziP1C3lLt0q2T4s.jpg",
-                "/2Nti3gYAX513wvhp8IiLL6ZDyOm.jpg",
-                "2025-03-31",
-                "Four misfits find themselves struggling with ordinary problems when they are suddenly pulled through a mysterious portal into the Overworld: a bizarre, cubic wonderland that thrives on imagination. To get back home, they'll have to master this world while embarking on a magical quest with an unexpected, expert crafter, Steve.",
-                listOf("Family", "Comedy", "Adventure", "Fantasy"),
-                "https://www.minecraft-movie.com",
-                "tt3566834"
-            )
-        )
-
-        MovieDetailScreen(
-            viewModel = dummyViewModel,
-            selectedMovieUiState = selectedMovieUiState
-        )
-    }
-}
-
-class FakeMoviesRepository : MoviesRepository {
-    override suspend fun getPopularMovies(): MovieResponse {
-        return MovieResponse(
-            results = listOf(
-                Movie(
-                    id = 1,
-                    title = "A Minecraft Movie",
-                    backdropPath = "/2Nti3gYAX513wvhp8IiLL6ZDyOm.jpg",
-                    posterPath = "/yFHHfHcUgGAxziP1C3lLt0q2T4s.jpg",
-                    releaseDate = "2025-03-31",
-                    overview = "Four misfits find themselves struggling with ordinary problems when they are suddenly pulled through a mysterious portal into the Overworld...",
-                    genres = listOf("Family", "Comedy", "Adventure", "Fantasy"),
-                    homepage = "https://www.minecraft-movie.com",
-                    imdbId = "tt3566834"
-                )
-            )
-        )
-    }
-
-    override suspend fun getTopRatedMovies(): MovieResponse {
-        return MovieResponse(
-            results = listOf(
-                Movie(
-                    id = 2,
-                    title = "Steve's Big Adventure",
-                    backdropPath = "/abcd1234.jpg",
-                    posterPath = "/poster1234.jpg",
-                    releaseDate = "2025-04-01",
-                    overview = "Steve embarks on a thrilling journey through the cubic world of Minecraft...",
-                    genres = listOf("Adventure", "Action"),
-                    homepage = "https://www.stevesadventure.com",
-                    imdbId = "tt9876543"
-                )
-            )
-        )
     }
 }

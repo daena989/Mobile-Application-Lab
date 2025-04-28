@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -98,7 +99,10 @@ fun MovieListItemCard(movie: Movie,
                 )
                 Spacer(modifier = Modifier.size(8.dp))
 
-                GenreChips(genres = movie.genres)
+                GenreChips(
+                    genreIds = movie.genresIds, // Pass genre IDs directly
+                    modifier = Modifier.fillMaxWidth()
+                )
 
                 Text(
                     text = movie.overview,
