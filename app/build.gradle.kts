@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("org.jetbrains.kotlin.plugin.serialization")
 }
 
 android {
@@ -57,9 +58,12 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
 
     // Retrofit
-    implementation(libs.retrofit)
-    // Retrofit with Scalar Converter
-    implementation(libs.converter.scalars)
+    implementation(libs.retrofit2.kotlinx.serialization.converter.v100)
+    implementation(libs.retrofit.v2110)
+    implementation(libs.coil.compose.v270)
+    implementation(libs.kotlinx.serialization.json.v180)
+    implementation(libs.logging.interceptor)
+
 
     //ExoPlayer
     implementation(libs.androidx.media3.exoplayer)

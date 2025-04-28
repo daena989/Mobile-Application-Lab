@@ -17,7 +17,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -29,7 +28,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.moviedb2025.R
-import com.example.moviedb2025.database.Movies
 import com.example.moviedb2025.viewmodel.MovieDBViewModel
 
 
@@ -39,23 +37,23 @@ enum class MovieDBScreen(@StringRes val title: Int){
     Favorites(title = R.string.favorites)
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MovieDBAppBar(
-    currScreen: MovieDBScreen,
-    canNavigateBack:Boolean,
+    currentScreen: MovieDBScreen,
+    canNavigateBack: Boolean,
     navigateUp: () -> Unit,
     modifier: Modifier = Modifier,
-    onFavoritesClick: () -> Unit = {}
-
-){
+    onFavoritesClick: () -> Unit = {} // Add onFavoritesClick for List screen
+) {
     TopAppBar(
-        title = {Text(stringResource(currScreen.title))},
+        title = { Text(stringResource(currentScreen.title)) },
         colors = TopAppBarDefaults.mediumTopAppBarColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer
         ),
         modifier = modifier,
         navigationIcon = {
-            if (canNavigateBack){
+            if (canNavigateBack) {
                 IconButton(onClick = navigateUp) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -65,74 +63,81 @@ fun MovieDBAppBar(
             }
         },
         actions = {
-            if (currScreen == MovieDBScreen.List) {
+            if (currentScreen == MovieDBScreen.List) {
                 IconButton(onClick = onFavoritesClick) {
                     Icon(
                         imageVector = Icons.Default.Favorite,
-                        contentDescription = "Favorites"
+                        contentDescription = stringResource(R.string.favorites)
                     )
                 }
             }
         }
     )
 }
+
 @Composable
-fun MovieDbApp(viewModel: MovieDBViewModel = viewModel(),
-               navController: NavHostController = rememberNavController()
+fun MovieDBApp(
+    navController: NavHostController = rememberNavController()
 ) {
-    val backStackEntity by navController.currentBackStackEntryAsState()
+    val backStackEntry by navController.currentBackStackEntryAsState()
 
     val currentScreen = MovieDBScreen.valueOf(
-        backStackEntity?.destination?.route ?: MovieDBScreen.List.name
+        backStackEntry?.destination?.route ?: MovieDBScreen.List.name
     )
+
+    val movieDBViewModel: MovieDBViewModel = viewModel(factory = MovieDBViewModel.Factory)
 
     Scaffold(
         topBar = {
-            MovieDBAppBar(currScreen = currentScreen,
+            MovieDBAppBar(
+                currentScreen = currentScreen,
                 canNavigateBack = navController.previousBackStackEntry != null,
                 navigateUp = { navController.navigateUp() },
-                onFavoritesClick = { navController.navigate(MovieDBScreen.Favorites.name) }
+                onFavoritesClick = {
+                    navController.navigate(MovieDBScreen.Favorites.name)
+                }
             )
         }
     ) { innerPadding ->
-        val uiState by viewModel.uiState.collectAsState()
         NavHost(
             navController = navController,
             startDestination = MovieDBScreen.List.name,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-        ){
-            composable(route = MovieDBScreen.List.name){
-                MovieListGridScreen(
-                    movieList = Movies().getMovies(),
+        ) {
+            composable(route = MovieDBScreen.List.name) {
+                MovieListScreen(
+                    movieListUiState = movieDBViewModel.movieListUiState,
                     onMovieListItemClicked = { movie ->
-                        viewModel.setSelectedMovie(movie)
+                        movieDBViewModel.setSelectedMovie(movie)
                         navController.navigate(MovieDBScreen.Detail.name)
-                    }, modifier = Modifier.fillMaxSize().padding(16.dp),
+                    },
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
                 )
             }
-            composable(route = MovieDBScreen.Detail.name){
-                uiState.selectedMovie?.let { movie ->
-                    MovieDetailScreen(
-                        movie = movie,
-                        viewModel = viewModel,
-                        modifier = Modifier
-                    )
-                }
+            composable(route = MovieDBScreen.Detail.name) {
+                MovieDetailScreen(
+                    viewModel = movieDBViewModel,
+                    selectedMovieUiState = movieDBViewModel.selectedMovieUiState,
+                    modifier = Modifier
+                )
             }
             composable(route = MovieDBScreen.Favorites.name) {
                 FavoritesScreen(
-                    favorites = uiState.favorites,
+                    favorites = movieDBViewModel.favoriteMovies,
                     onMovieClicked = { movie ->
-                        viewModel.setSelectedMovie(movie)
+                        movieDBViewModel.setSelectedMovie(movie)
                         navController.navigate(MovieDBScreen.Detail.name)
                     },
-                    modifier = Modifier.fillMaxSize().padding(16.dp)
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
                 )
             }
         }
-
-
     }
 }
+

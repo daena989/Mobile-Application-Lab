@@ -8,8 +8,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import com.example.moviedb2025.ui.screens.MovieDBApp
 import com.example.moviedb2025.ui.theme.MovieDB2025Theme
-import com.example.moviedb2025.ui.screens.MovieDbApp
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -21,7 +22,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    MovieDbApp()
+                    MovieDBApp()
                 }
             }
         }

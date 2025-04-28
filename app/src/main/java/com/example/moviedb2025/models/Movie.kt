@@ -3,6 +3,7 @@ package com.example.moviedb2025.models
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+@Serializable
 data class Movie(
     @SerialName(value = "id")
     var id: Long = 0L,
@@ -14,7 +15,7 @@ data class Movie(
     var posterPath: String,
 
     @SerialName(value = "backdrop_path")
-    var backdropPath: String,
+    var backdropPath: String? = null,
 
     @SerialName(value = "release_date")
     var releaseDate: String,
@@ -23,11 +24,11 @@ data class Movie(
     var overview: String,
 
     @SerialName(value = "genres")
-    val genres: List<String>,
+    val genres: List<String> = emptyList(), // << changed
 
     @SerialName(value = "homepage")
-    val homepage: String,
+    val homepage: String? = null, // << made nullable
 
     @SerialName(value = "imdb_id")
-    val imdbId: String
+    val imdbId: String? = null // << made nullable
 )

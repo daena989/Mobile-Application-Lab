@@ -1,35 +1,109 @@
 package com.example.moviedb2025.viewmodel
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import com.example.moviedb2025.database.MovieDBUIState
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.example.moviedb2025.MovieDBApplication
+import com.example.moviedb2025.database.MoviesRepository
 import com.example.moviedb2025.models.Movie
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 
-class MovieDBViewModel : ViewModel() {
-    private val _uiState = MutableStateFlow(MovieDBUIState())
-    val uiState: StateFlow<MovieDBUIState> = _uiState.asStateFlow()
+import kotlinx.coroutines.launch
+import retrofit2.HttpException
+import java.io.IOException
+
+// Use sealed interface when loading from database/network
+sealed interface MovieListUiState {
+    data class Success(val movies: List<Movie>) : MovieListUiState
+    object Error : MovieListUiState
+    object Loading : MovieListUiState
+}
+
+sealed interface SelectedMovieUiState {
+    data class Success(val movie: Movie) : SelectedMovieUiState
+    object Error : SelectedMovieUiState
+    object Loading : SelectedMovieUiState
+}
+
+open class MovieDBViewModel(private val moviesRepository: MoviesRepository) : ViewModel() {
+
+    var movieListUiState: MovieListUiState by mutableStateOf(MovieListUiState.Loading)
+        private set
+
+    var selectedMovieUiState: SelectedMovieUiState by mutableStateOf(SelectedMovieUiState.Loading)
+        private set
+
+    init {
+        getPopularMovies()
+    }
+
+    private fun getTopRatedMovies() {
+        viewModelScope.launch {
+            movieListUiState = MovieListUiState.Loading
+            movieListUiState = try {
+                MovieListUiState.Success(moviesRepository.getTopRatedMovies().results)
+            } catch (e: IOException) {
+                MovieListUiState.Error
+            } catch (e: HttpException) {
+                MovieListUiState.Error
+            }
+        }
+    }
+
+    fun getPopularMovies() {
+        viewModelScope.launch {
+            movieListUiState = MovieListUiState.Loading
+            movieListUiState = try {
+                MovieListUiState.Success(moviesRepository.getPopularMovies().results)
+            } catch (e: IOException) {
+                MovieListUiState.Error
+            } catch (e: HttpException) {
+                MovieListUiState.Error
+            }
+        }
+    }
 
     fun setSelectedMovie(movie: Movie) {
-        _uiState.update { currentState ->
-            currentState.copy(selectedMovie = movie)
+        viewModelScope.launch {
+            selectedMovieUiState = SelectedMovieUiState.Loading
+            selectedMovieUiState = try {
+                SelectedMovieUiState.Success(movie)
+            } catch (e: IOException) {
+                SelectedMovieUiState.Error
+            } catch (e: HttpException) {
+                SelectedMovieUiState.Error
+            }
         }
     }
 
+    // NEW: List of favorite movies
+    open var favoriteMovies: List<Movie> by mutableStateOf(emptyList()) // No need for sealed interface as only instant local memory update
+        private set
+
+    // NEW: Add movie to favorites
     fun addToFavorites(movie: Movie) {
-        _uiState.update { currentState ->
-            if (!currentState.favorites.any { it.id == movie.id }) {
-                currentState.copy(favorites = currentState.favorites + movie)
-            } else currentState
+        if (favoriteMovies.none { it.id == movie.id }) {
+            favoriteMovies = favoriteMovies + movie
         }
     }
 
+    // NEW: Remove movie from favorites
     fun removeFromFavorites(movie: Movie) {
-        _uiState.update { currentState ->
-            currentState.copy(favorites = currentState.favorites.filterNot { it.id == movie.id })
-        }
+        favoriteMovies = favoriteMovies.filterNot { it.id == movie.id }
     }
 
+
+    companion object {
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val application = (this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as MovieDBApplication)
+                val moviesRepository = application.container.moviesRepository
+                MovieDBViewModel(moviesRepository = moviesRepository)
+            }
+        }
+    }
 }
