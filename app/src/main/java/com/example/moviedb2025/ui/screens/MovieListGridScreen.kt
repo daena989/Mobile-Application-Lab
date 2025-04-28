@@ -12,11 +12,12 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.moviedb2025.models.Movie
 import com.example.moviedb2025.ui.GenreChips
-import com.example.moviedb2025.utils.Constans
+import com.example.moviedb2025.utils.Constants
+import com.example.moviedb2025.viewmodel.MovieListUiState
 
 @Composable
 fun MovieListGridScreen(
-    movieList: List<Movie>,
+    movieListUiState: MovieListUiState,
     onMovieListItemClicked: (Movie) -> Unit,
     modifier: Modifier = Modifier,
     columns: Int = 2 // You can change this value to set the number of columns
@@ -24,15 +25,38 @@ fun MovieListGridScreen(
     LazyVerticalGrid(
         columns = GridCells.Fixed(columns),
         modifier = modifier,
-    ) {
-        items(movieList) { movie ->
-            MovieListGridItemCard(
-                movie = movie,
-                onMovieListItemClicked = onMovieListItemClicked,
-                modifier = Modifier.padding(4.dp)
-            )
+    ) {when(movieListUiState) {
+        is MovieListUiState.Success -> {
+            items(movieListUiState.movies) { movie ->
+                MovieListGridItemCard(
+                    movie = movie,
+                    onMovieListItemClicked,
+                    modifier = Modifier.padding(8.dp)
+                )
+            }
+        }
+
+        is MovieListUiState.Loading -> {
+            item {
+                Text(
+                    text = "Loading...",
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
+        }
+
+        is MovieListUiState.Error -> {
+            item {
+                Text(
+                    text = "Error: Something went wrong!",
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
         }
     }
+}
 }
 
 @Composable
@@ -56,7 +80,7 @@ fun MovieListGridItemCard(
                     .padding(8.dp) // Padding around image inside the card
             ) {
                 AsyncImage(
-                    model = Constans.POSTER_IMAGE_BASE_URL + Constans.POSTER_IMAGE_BASE_WIDTH + movie.posterPath,
+                    model = Constants.POSTER_IMAGE_BASE_URL + Constants.POSTER_IMAGE_BASE_WIDTH + movie.posterPath,
                     contentDescription = movie.title,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
@@ -85,7 +109,10 @@ fun MovieListGridItemCard(
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                GenreChips(genres = movie.genres)
+                GenreChips(
+                    genreIds = movie.genresIds, // Pass genre IDs directly
+                    modifier = Modifier.fillMaxWidth()
+                )
 
                 Spacer(modifier = Modifier.height(4.dp))
 
@@ -112,7 +139,7 @@ fun MovieListGridItemCardPreview() {
         backdropPath = "/2Nti3gYAX513wvhp8IiLL6ZDyOm.jpg",
         releaseDate = "2025-03-31",
         overview = "Four misfits find themselves struggling with ordinary problems when they are suddenly pulled through a mysterious portal into the Overworld: a bizarre, cubic wonderland that thrives on imagination. To get back home, they'll have to master this world while embarking on a magical quest with an unexpected, expert crafter, Steve.",
-        genres = listOf("Family", "Comedy", "Adventure", "Fantasy"),
+        genresIds = listOf(28),
         homepage = "https://www.minecraft-movie.com",
         imdbId = "tt3566834"
     )

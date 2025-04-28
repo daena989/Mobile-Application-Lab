@@ -1,6 +1,5 @@
 package com.example.moviedb2025.ui.screens
 
-import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import androidx.compose.foundation.clickable

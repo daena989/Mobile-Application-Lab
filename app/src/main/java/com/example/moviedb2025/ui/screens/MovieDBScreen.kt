@@ -107,7 +107,7 @@ fun MovieDBApp(
                 .padding(innerPadding)
         ) {
             composable(route = MovieDBScreen.List.name) {
-                MovieListScreen(
+                MovieListGridScreen(
                     movieListUiState = movieDBViewModel.movieListUiState,
                     onMovieListItemClicked = { movie ->
                         movieDBViewModel.setSelectedMovie(movie)
