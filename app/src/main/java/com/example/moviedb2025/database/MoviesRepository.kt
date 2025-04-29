@@ -1,11 +1,13 @@
 package com.example.moviedb2025.database
 
+import com.example.moviedb2025.models.Movie
 import com.example.moviedb2025.models.MovieResponse
 import com.example.moviedb2025.network.MovieDBApiService
 
 interface MoviesRepository { // defines the methods for fetching movie data; abstracts data source allowing the rest of the app to interact with the movie data without knowing the details
     suspend fun getPopularMovies(): MovieResponse
     suspend fun getTopRatedMovies(): MovieResponse
+    suspend fun getMovieDetails(movieId: Long): Movie
 }
 
 // NetworkMR class implements the MovieRepository interface
@@ -17,4 +19,9 @@ class NetworkMoviesRepository(private val apiService: MovieDBApiService) : Movie
     override suspend fun getTopRatedMovies(): MovieResponse {
         return apiService.getTopRatedMovies()
     }
+
+    override suspend fun getMovieDetails(movieId: Long): Movie {
+        return apiService.getMovieDetails(movieId)
+    }
+
 }
