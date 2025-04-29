@@ -135,9 +135,6 @@ fun MovieDetailScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Text(text = "Homepage: ${movie.homepage ?: "N/A"}")
-                Text(text = "IMDB ID: ${movie.imdbId ?: "N/A"}")
-
                 Text(
                     text = movie.overview,
                     style = MaterialTheme.typography.bodySmall,
