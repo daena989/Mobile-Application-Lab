@@ -25,11 +25,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import coil.compose.AsyncImage
 import com.example.moviedb2025.ui.GenreChips
 import com.example.moviedb2025.utils.Constants
 import com.example.moviedb2025.viewmodel.MovieDBViewModel
 import com.example.moviedb2025.viewmodel.SelectedMovieUiState
+
 
 
 @Composable
@@ -45,10 +48,12 @@ fun MovieDetailScreen(
         is SelectedMovieUiState.Success -> {
             val movie = selectedMovieUiState.movie
             val isFavorite = favoriteMovies.any { it.id == movie.id }
+            val scrollState = rememberScrollState()
 
             Column(
                 modifier = modifier
                     .fillMaxSize()
+                    .verticalScroll(scrollState) // scrollable in landscape
                     .padding(16.dp)
             ) {
                 Box(
