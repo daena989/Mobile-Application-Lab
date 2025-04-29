@@ -118,6 +118,13 @@ fun MovieDBApp(
                         .padding(16.dp)
                 )
             }
+            composable(route = MovieDBScreen.Detail.name) {
+                MovieDetailScreen(
+                    viewModel = movieDBViewModel,
+                    selectedMovieUiState = movieDBViewModel.selectedMovieUiState,
+                    modifier = Modifier
+                )
+            }
             composable(route = MovieDBScreen.Favorites.name) {
                 FavoritesScreen(
                     favorites = movieDBViewModel.favoriteMovies,
