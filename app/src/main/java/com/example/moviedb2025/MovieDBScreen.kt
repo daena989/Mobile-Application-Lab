@@ -119,7 +119,8 @@ fun MovieDBApp(
                 MovieDetailScreen(
                     viewModel = movieDBViewModel,
                     selectedMovieUiState = movieDBViewModel.selectedMovieUiState,
-                    modifier = Modifier
+                    modifier = Modifier,
+                    navController = navController
                 )
             }
         }
