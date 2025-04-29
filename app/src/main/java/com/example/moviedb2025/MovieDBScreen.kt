@@ -33,10 +33,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.moviedb2025.R
-import com.example.moviedb2025.ui.screens.MovieDetailScreen
 
 import com.example.moviedb2025.ui.screens.MovieListScreen
-
+import com.example.moviedb2025.ui.screens.MovieDetailScreen
 import com.example.moviedb2025.viewmodel.MovieDBViewModel
 
 
@@ -118,6 +117,7 @@ fun MovieDBApp(
             }
             composable(route = MovieDBScreen.Detail.name) {
                 MovieDetailScreen(
+                    viewModel = movieDBViewModel,
                     selectedMovieUiState = movieDBViewModel.selectedMovieUiState,
                     modifier = Modifier
                 )
