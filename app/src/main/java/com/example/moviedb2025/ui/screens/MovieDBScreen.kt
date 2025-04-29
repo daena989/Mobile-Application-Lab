@@ -29,6 +29,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.moviedb2025.R
 import com.example.moviedb2025.viewmodel.MovieDBViewModel
+import androidx.navigation.navArgument
+import androidx.navigation.NavType
 
 
 enum class MovieDBScreen(@StringRes val title: Int){
@@ -81,9 +83,13 @@ fun MovieDBApp(
 ) {
     val backStackEntry by navController.currentBackStackEntryAsState()
 
-    val currentScreen = MovieDBScreen.valueOf(
-        backStackEntry?.destination?.route ?: MovieDBScreen.List.name
-    )
+    val currentScreen = when (backStackEntry?.destination?.route?.substringBefore("/")) {
+        MovieDBScreen.List.name -> MovieDBScreen.List
+        MovieDBScreen.Detail.name -> MovieDBScreen.Detail
+        MovieDBScreen.Favorites.name -> MovieDBScreen.Favorites
+        "Reviews" -> MovieDBScreen.Detail // Treat Reviews like Detail for AppBar (or create special logic)
+        else -> MovieDBScreen.List
+    }
 
     val movieDBViewModel: MovieDBViewModel = viewModel(factory = MovieDBViewModel.Factory)
 
@@ -122,7 +128,8 @@ fun MovieDBApp(
                 MovieDetailScreen(
                     viewModel = movieDBViewModel,
                     selectedMovieUiState = movieDBViewModel.selectedMovieUiState,
-                    modifier = Modifier
+                    modifier = Modifier,
+                    navController = navController
                 )
             }
             composable(route = MovieDBScreen.Favorites.name) {
@@ -135,6 +142,17 @@ fun MovieDBApp(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(16.dp)
+                )
+            }
+
+            composable(
+                route = "Reviews/{movieId}",
+                arguments = listOf(navArgument("movieId") { type = NavType.LongType })
+            ) { backStackEntry ->
+                val movieId = backStackEntry.arguments?.getLong("movieId") ?: 0L
+                MovieReviewsScreen(
+                    movieId = movieId,
+                    viewModel = movieDBViewModel
                 )
             }
         }
