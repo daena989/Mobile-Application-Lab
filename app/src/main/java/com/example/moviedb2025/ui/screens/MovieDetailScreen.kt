@@ -18,8 +18,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -28,112 +26,146 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import coil.compose.AsyncImage
-import com.example.moviedb2025.models.Movie
 import com.example.moviedb2025.ui.GenreChips
 import com.example.moviedb2025.utils.Constants
 import com.example.moviedb2025.viewmodel.MovieDBViewModel
+import com.example.moviedb2025.viewmodel.SelectedMovieUiState
 
 
 @Composable
 fun MovieDetailScreen(
-    movie: Movie,
     viewModel: MovieDBViewModel,
+    selectedMovieUiState: SelectedMovieUiState,
     modifier: Modifier = Modifier
 ) {
+    val favoriteMovies = viewModel.favoriteMovies  // Now getting the favoriteMovies state
     val context = LocalContext.current
-    val uiState by viewModel.uiState.collectAsState() //listen for updates holds the current state (movie + fav) collect state from viewmodel
-    val isFavorite = uiState.favorites.any { it.id == movie.id } //checks for condition from that state and will get updated and recompose ui.state.fav is the list of fav movies stored in Viewmodel and any checks if have the same id as current movie displayed
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        Box {
-            AsyncImage(
-                model = Constants.BACKDROP_IMAGE_BASE_URL + Constants.BACKDROP_IMAGE_BASE_WIDTH + movie.backdropPath,
-                contentDescription = movie.title,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp),
-                contentScale = ContentScale.Crop
-            )
-        }
+    when (selectedMovieUiState) {
+        is SelectedMovieUiState.Success -> {
+            val movie = selectedMovieUiState.movie
+            val isFavorite = favoriteMovies.any { it.id == movie.id }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = movie.title,
-            style = MaterialTheme.typography.headlineSmall
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Favorite Button
-        Button(
-            onClick = {
-                if (isFavorite) {
-                    viewModel.removeFromFavorites(movie)
-                } else {
-                    viewModel.addToFavorites(movie)
+            Column(
+                modifier = modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+            ) {
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp)
+                ) {
+                    AsyncImage(
+                        model = Constants.BACKDROP_IMAGE_BASE_URL + Constants.BACKDROP_IMAGE_BASE_WIDTH + movie.backdropPath,
+                        contentDescription = movie.title,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                    )
                 }
-            },
-            modifier = Modifier.align(Alignment.Start)
-        ) {
-            Text(text = if (isFavorite) "★ Favorited" else "☆ Add to Favorites")
-        }
 
-        Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = movie.title,
+                    style = MaterialTheme.typography.headlineSmall
+                )
 
-        Text(
-            text = "Release Date: ${movie.releaseDate}",
-            style = MaterialTheme.typography.bodySmall
-        )
+                Spacer(modifier = Modifier.height(8.dp))
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Genre chips
-        GenreChips(genres = movie.genres, modifier = Modifier.fillMaxWidth())
-        Spacer(modifier = Modifier.height(16.dp))
-
-
-        // Links Section
-        Column(
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            movie.homepage.let { homepage ->
-                LinkCard(text = "Open Homepage") {
-                    val intent = Intent(Intent.ACTION_VIEW, homepage.toUri())
-                    context.startActivity(intent)
+                Button(
+                    onClick = {
+                        if (isFavorite) {
+                            viewModel.removeFromFavorites(movie)
+                        } else {
+                            viewModel.addToFavorites(movie)
+                        }
+                    },
+                    modifier = Modifier.align(Alignment.Start)
+                ) {
+                    Text(text = if (isFavorite) "★ Favorited" else "☆ Add to Favorites")
                 }
-            }
 
-            movie.imdbId.let { imdbId ->
-                val imdbUrl = "https://www.imdb.com/title/$imdbId"
-                LinkCard(text = "Open in IMDB") {
-                    val intent = Intent(Intent.ACTION_VIEW, imdbUrl.toUri()).apply {
-                        setPackage("com.imdb.mobile") // Open in IMDB app
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    text = "Release Date: ${movie.releaseDate}",
+                    style = MaterialTheme.typography.bodySmall
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                GenreChips(
+                    genreIds = movie.genresIds, // Pass genre IDs directly
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    movie.homepage?.let { homepage ->
+                        if (homepage.isNotEmpty()) {
+                            LinkCard(text = "Open Homepage") {
+                                val intent = Intent(Intent.ACTION_VIEW, homepage.toUri())
+                                context.startActivity(intent)
+                            }
+                        }
                     }
-                    try {
-                        context.startActivity(intent)
-                    } catch (e: ActivityNotFoundException) {
-                        val fallbackIntent = Intent(Intent.ACTION_VIEW, imdbUrl.toUri())
-                        context.startActivity(fallbackIntent)
+
+                    movie.imdbId?.let { imdbId ->
+                        if (imdbId.isNotEmpty()) {
+                            val imdbUrl = "https://www.imdb.com/title/$imdbId"
+                            LinkCard(text = "Open in IMDB") {
+                                val intent = Intent(Intent.ACTION_VIEW, imdbUrl.toUri()).apply {
+                                    setPackage("com.imdb.mobile")
+                                }
+                                try {
+                                    context.startActivity(intent)
+                                } catch (e: ActivityNotFoundException) {
+                                    val fallbackIntent = Intent(Intent.ACTION_VIEW, imdbUrl.toUri())
+                                    context.startActivity(fallbackIntent)
+                                }
+                            }
+                        }
                     }
                 }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(text = "Homepage: ${movie.homepage ?: "N/A"}")
+                Text(text = "IMDB ID: ${movie.imdbId ?: "N/A"}")
+
+                Text(
+                    text = movie.overview,
+                    style = MaterialTheme.typography.bodySmall,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        is SelectedMovieUiState.Loading -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(
+                    text = "Loading...",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+        }
 
-        Text(
-            text = movie.overview,
-            style = MaterialTheme.typography.bodySmall,
-            overflow = TextOverflow.Ellipsis
-        )
+        is SelectedMovieUiState.Error -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(
+                    text = "Error loading movie details",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+        }
     }
 }
+
 
 
 @Composable

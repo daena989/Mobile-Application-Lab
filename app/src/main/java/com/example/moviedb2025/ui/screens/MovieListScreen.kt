@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -22,25 +23,48 @@ import coil.compose.AsyncImage
 import com.example.moviedb2025.models.Movie
 import com.example.moviedb2025.ui.GenreChips
 import com.example.moviedb2025.utils.Constants
+import com.example.moviedb2025.viewmodel.MovieListUiState
 
 @Composable
 fun MovieListScreen(
-    movieList: List<Movie>,
+    movieListUiState: MovieListUiState,
     onMovieListItemClicked: (Movie) -> Unit,
     modifier: Modifier = Modifier) {
-    Column(modifier = modifier) {
-        LazyColumn {
-            items(movieList) { movie ->
-                MovieListItemCard(
-                    movie = movie,
-                    onMovieListItemClicked = onMovieListItemClicked,
-                    modifier = Modifier.padding(8.dp)
-                )
+    //scrollable list
+    LazyColumn (modifier = modifier) {
+        when(movieListUiState) {
+            is MovieListUiState.Success -> {
+                items(movieListUiState.movies) { movie ->
+                    MovieListItemCard(
+                        movie = movie,
+                        onMovieListItemClicked,
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
+            }
+
+            is MovieListUiState.Loading -> {
+                item {
+                    Text(
+                        text = "Loading...",
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+            }
+
+            is MovieListUiState.Error -> {
+                item {
+                    Text(
+                        text = "Error: Something went wrong!",
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
             }
         }
     }
 }
-
 
 @Composable
 fun MovieListItemCard(movie: Movie,
@@ -75,7 +99,10 @@ fun MovieListItemCard(movie: Movie,
                 )
                 Spacer(modifier = Modifier.size(8.dp))
 
-                GenreChips(genres = movie.genres)
+                GenreChips(
+                    genreIds = movie.genresIds, // Pass genre IDs directly
+                    modifier = Modifier.fillMaxWidth()
+                )
 
                 Text(
                     text = movie.overview,

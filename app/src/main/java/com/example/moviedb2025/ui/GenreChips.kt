@@ -14,10 +14,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.moviedb2025.models.getGenreNames
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun GenreChips(genres: List<String>, modifier: Modifier = Modifier) {
+fun GenreChips(genreIds: List<Int>, modifier: Modifier = Modifier) {
+    val genreNames = getGenreNames(genreIds) // Map IDs to names
     FlowRow(
         modifier = modifier
             .fillMaxWidth()
@@ -25,12 +27,11 @@ fun GenreChips(genres: List<String>, modifier: Modifier = Modifier) {
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
-        genres.forEach { genre ->
+        genreNames.forEach { genre ->
             GenreChip(genre)
         }
     }
 }
-
 @Composable
 fun GenreChip(genre: String) {
     Box(
@@ -50,11 +51,8 @@ fun GenreChip(genre: String) {
     }
 }
 
-
-@Preview
+@Preview(showBackground = true)
 @Composable
-fun GenreChipsRowPreview() {
-    GenreChips(
-        genres = listOf("Action", "Adventure", "Drama", "Comedy", "Fantasy", "Horror", "Sci-Fi", "Thriller")
-    )
+fun PreviewGenreChips() {
+    GenreChips(genreIds = listOf(28, 12, 35)) // Should display "Action", "Adventure", "Comedy"
 }
