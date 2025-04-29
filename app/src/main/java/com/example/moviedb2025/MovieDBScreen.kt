@@ -118,6 +118,7 @@ fun MovieDBApp(
             }
             composable(route = MovieDBScreen.Detail.name) {
                 MovieDetailScreen(
+                    viewModel = movieDBViewModel,
                     selectedMovieUiState = movieDBViewModel.selectedMovieUiState,
                     modifier = Modifier
                 )

@@ -1,6 +1,6 @@
 [versions]
 accompanistFlowlayout = "0.34.0"
-agp = "8.8.2"
+agp = "8.9.2"
 coilCompose = "2.6.0"
 coilComposeVersion = "2.7.0"
 converterScalars = "2.9.0"
