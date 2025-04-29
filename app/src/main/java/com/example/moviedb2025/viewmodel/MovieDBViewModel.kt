@@ -11,6 +11,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.moviedb2025.MovieDBApplication
 import com.example.moviedb2025.database.MoviesRepository
 import com.example.moviedb2025.models.Movie
+import com.example.moviedb2025.models.Review
 
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
@@ -29,12 +30,21 @@ sealed interface SelectedMovieUiState {
     object Loading : SelectedMovieUiState
 }
 
+sealed interface ReviewsUiState {
+    data class Success(val reviews: List<Review>) : ReviewsUiState
+    object Error : ReviewsUiState
+    object Loading : ReviewsUiState
+}
+
 open class MovieDBViewModel(private val moviesRepository: MoviesRepository) : ViewModel() {
 
     var movieListUiState: MovieListUiState by mutableStateOf(MovieListUiState.Loading)
         private set
 
     var selectedMovieUiState: SelectedMovieUiState by mutableStateOf(SelectedMovieUiState.Loading)
+        private set
+
+    var reviewsUiState: ReviewsUiState by mutableStateOf(ReviewsUiState.Loading)
         private set
 
     init {
@@ -99,6 +109,18 @@ open class MovieDBViewModel(private val moviesRepository: MoviesRepository) : Vi
         favoriteMovies = favoriteMovies.filterNot { it.id == movie.id }
     }
 
+    fun getMovieReviews(movieId: Long) {
+        viewModelScope.launch {
+            reviewsUiState = ReviewsUiState.Loading
+            reviewsUiState = try {
+                ReviewsUiState.Success(moviesRepository.getMovieReviews(movieId).results)
+            } catch (e: IOException) {
+                ReviewsUiState.Error
+            } catch (e: HttpException) {
+                ReviewsUiState.Error
+            }
+        }
+    }
 
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {

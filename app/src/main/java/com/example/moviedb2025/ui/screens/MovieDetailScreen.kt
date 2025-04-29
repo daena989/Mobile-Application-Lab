@@ -25,6 +25,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.moviedb2025.ui.GenreChips
 import com.example.moviedb2025.utils.Constants
@@ -32,11 +35,13 @@ import com.example.moviedb2025.viewmodel.MovieDBViewModel
 import com.example.moviedb2025.viewmodel.SelectedMovieUiState
 
 
+
 @Composable
 fun MovieDetailScreen(
     viewModel: MovieDBViewModel,
     selectedMovieUiState: SelectedMovieUiState,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    navController: NavHostController
 ) {
     val favoriteMovies = viewModel.favoriteMovies  // Now getting the favoriteMovies state
     val context = LocalContext.current
@@ -45,10 +50,12 @@ fun MovieDetailScreen(
         is SelectedMovieUiState.Success -> {
             val movie = selectedMovieUiState.movie
             val isFavorite = favoriteMovies.any { it.id == movie.id }
+            val scrollState = rememberScrollState()
 
             Column(
                 modifier = modifier
                     .fillMaxSize()
+                    .verticalScroll(scrollState) // scrollable in landscape
                     .padding(16.dp)
             ) {
                 Box(
@@ -95,10 +102,10 @@ fun MovieDetailScreen(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                GenreChips(
-                    genreIds = movie.genresIds, // Pass genre IDs directly
-                    modifier = Modifier.fillMaxWidth()
-                )
+                // GenreChips(
+                   // genreIds = movie.genresIds, // Pass genre IDs directly
+                   // modifier = Modifier.fillMaxWidth()
+                // )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -133,6 +140,14 @@ fun MovieDetailScreen(
                     }
                 }
 
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(onClick = {
+                    println("Navigating to Reviews for movie id = ${movie.id}")
+                    navController.navigate("Reviews/${movie.id}")
+                }) {
+                    Text("See Reviews")
+                }
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(text = "Homepage: ${movie.homepage ?: "N/A"}")
