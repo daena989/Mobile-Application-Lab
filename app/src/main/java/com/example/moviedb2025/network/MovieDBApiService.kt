@@ -1,9 +1,11 @@
 package com.example.moviedb2025.network
 
 import android.provider.SyncStateContract
+import com.example.moviedb2025.models.Movie
 import com.example.moviedb2025.models.MovieResponse
 import com.example.moviedb2025.utils.Constants
 import retrofit2.http.GET
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface MovieDBApiService {
@@ -19,4 +21,10 @@ interface MovieDBApiService {
         @Query("api_key")
         apiKey: String = Constants.API_KEY
     ): MovieResponse
+
+    @GET("{movie_id}") // API call to get detailed movie info
+    suspend fun getMovieDetails(
+        @Path("movie_id") movieId: Long,
+        @Query("api_key") apiKey: String = Constants.API_KEY
+    ): Movie
 }

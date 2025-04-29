@@ -71,7 +71,9 @@ open class MovieDBViewModel(private val moviesRepository: MoviesRepository) : Vi
         viewModelScope.launch {
             selectedMovieUiState = SelectedMovieUiState.Loading
             selectedMovieUiState = try {
-                SelectedMovieUiState.Success(movie)
+                // Fetch full movie details from the API
+                val fullMovie = moviesRepository.getMovieDetails(movie.id)
+                SelectedMovieUiState.Success(fullMovie)
             } catch (e: IOException) {
                 SelectedMovieUiState.Error
             } catch (e: HttpException) {
@@ -79,6 +81,7 @@ open class MovieDBViewModel(private val moviesRepository: MoviesRepository) : Vi
             }
         }
     }
+
 
     // NEW: List of favorite movies
     open var favoriteMovies: List<Movie> by mutableStateOf(emptyList()) // No need for sealed interface as only instant local memory update
