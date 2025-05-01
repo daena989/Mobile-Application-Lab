@@ -69,6 +69,10 @@ dependencies {
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.ui)
 
+    // in .kts
+    implementation(libs.androidx.media3.exoplayer.v120)
+    implementation(libs.androidx.media3.ui.v120)
+
     implementation(libs.retrofit2.kotlinx.serialization.converter)
     implementation(libs.logging.interceptor)
 

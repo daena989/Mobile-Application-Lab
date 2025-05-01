@@ -1,5 +1,6 @@
 package com.example.moviedb2025.ui.screens
 
+//import android.media.browse.MediaBrowser.MediaItem
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -8,11 +9,27 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.ExoPlayer
 import com.example.moviedb2025.models.Review
 import com.example.moviedb2025.viewmodel.MovieDBViewModel
 import com.example.moviedb2025.viewmodel.ReviewsUiState
+
+import androidx.annotation.OptIn
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.media3.common.MediaItem
+import androidx.media3.ui.PlayerView
+import com.example.moviedb2025.utils.Constants.EXAMPLE_VIDEO_URI
 
 @Composable
 fun MovieReviewsScreen(
@@ -24,25 +41,31 @@ fun MovieReviewsScreen(
         viewModel.getMovieReviews(movieId)
     }
 
-    when (val state = viewModel.reviewsUiState) {
-        is ReviewsUiState.Loading -> {
-            Text(text = "Loading reviews...", modifier = Modifier.padding(16.dp))
-        }
-        is ReviewsUiState.Error -> {
-            Text(text = "Failed to load reviews.", modifier = Modifier.padding(16.dp))
-        }
-        is ReviewsUiState.Success -> {
-            if (state.reviews.isEmpty()) {
-                Text(text = "No reviews available.", modifier = Modifier.padding(16.dp))
-            } else {
-                LazyRow(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(state.reviews) { review ->
-                        ReviewCard(review)
+    Column(modifier = Modifier.fillMaxSize()) {
+        // ExoPlayerView at the top
+        ExoPlayerView()
+
+        // Reviews section
+        when (val state = viewModel.reviewsUiState) {
+            is ReviewsUiState.Loading -> {
+                Text(text = "Loading reviews...", modifier = Modifier.padding(16.dp))
+            }
+            is ReviewsUiState.Error -> {
+                Text(text = "Failed to load reviews.", modifier = Modifier.padding(16.dp))
+            }
+            is ReviewsUiState.Success -> {
+                if (state.reviews.isEmpty()) {
+                    Text(text = "No reviews available.", modifier = Modifier.padding(16.dp))
+                } else {
+                    LazyRow(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(state.reviews) { review ->
+                            ReviewCard(review)
+                        }
                     }
                 }
             }
@@ -72,3 +95,53 @@ fun ReviewCard(review: Review) {
         }
     }
 }
+
+@OptIn(UnstableApi::class)
+@Composable
+fun ExoPlayerView() {
+    // Get the current context
+    val context = LocalContext.current
+
+    // Initialize ExoPlayer
+    val exoPlayer = ExoPlayer.Builder(context).build()
+
+    // Create a MediaSource
+    val mediaSource = remember(EXAMPLE_VIDEO_URI) {
+        MediaItem.fromUri(EXAMPLE_VIDEO_URI)
+    }
+
+    // Set MediaSource to ExoPlayer
+    if (!LocalInspectionMode.current) {
+        LaunchedEffect(mediaSource) {
+            exoPlayer.setMediaItem(mediaSource)
+            exoPlayer.prepare()
+        }
+    }
+
+
+    // Manage lifecycle events
+    DisposableEffect(Unit) {
+        onDispose {
+            exoPlayer.release()
+        }
+    }
+
+    // Use AndroidView to embed an Android View (PlayerView) into Compose
+    AndroidView(
+        factory = { ctx ->
+            PlayerView(ctx).apply {
+                player = exoPlayer
+            }
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(200.dp) // Set your desired height
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ExoPlayerPreview() {
+        ExoPlayerView()
+}
+
