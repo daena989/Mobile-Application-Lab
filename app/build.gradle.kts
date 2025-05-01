@@ -64,20 +64,12 @@ dependencies {
     implementation(libs.kotlinx.serialization.json.v180)
     implementation(libs.logging.interceptor)
 
-
     //ExoPlayer
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.ui)
 
-    // in .kts
-    implementation(libs.androidx.media3.exoplayer.v120)
-    implementation(libs.androidx.media3.ui.v120)
-
     implementation(libs.retrofit2.kotlinx.serialization.converter)
     implementation(libs.logging.interceptor)
-
-    //YouTube Android Player Library
-    implementation(libs.core)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
