@@ -76,6 +76,9 @@ dependencies {
     implementation(libs.retrofit2.kotlinx.serialization.converter)
     implementation(libs.logging.interceptor)
 
+    //YouTube Android Player Library
+    implementation(libs.core)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

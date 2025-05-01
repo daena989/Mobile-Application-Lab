@@ -36,6 +36,13 @@ sealed interface ReviewsUiState {
     object Loading : ReviewsUiState
 }
 
+sealed interface VideosUiState {
+    data class Success(val videoKey: String) : VideosUiState
+    object Error : VideosUiState
+    object Loading : VideosUiState
+}
+
+
 open class MovieDBViewModel(private val moviesRepository: MoviesRepository) : ViewModel() {
 
     var movieListUiState: MovieListUiState by mutableStateOf(MovieListUiState.Loading)
@@ -45,6 +52,9 @@ open class MovieDBViewModel(private val moviesRepository: MoviesRepository) : Vi
         private set
 
     var reviewsUiState: ReviewsUiState by mutableStateOf(ReviewsUiState.Loading)
+        private set
+
+    var videosUiState: VideosUiState by mutableStateOf(VideosUiState.Loading)
         private set
 
     init {
@@ -118,6 +128,32 @@ open class MovieDBViewModel(private val moviesRepository: MoviesRepository) : Vi
                 ReviewsUiState.Error
             } catch (e: HttpException) {
                 ReviewsUiState.Error
+            }
+        }
+    }
+
+    fun getMovieVideos(movieId: Long) {
+        viewModelScope.launch {
+            videosUiState = VideosUiState.Loading
+            videosUiState = try {
+                val videos = moviesRepository.getMovieVideos(movieId).results
+
+                val acceptedTypes = listOf("Trailer", "Teaser", "Clip", "Featurette")
+
+                val youtubeVideo = videos.firstOrNull {
+                    it.site.equals("YouTube", ignoreCase = true) &&
+                            acceptedTypes.contains(it.type)
+                }
+
+                if (youtubeVideo != null) {
+                    VideosUiState.Success(youtubeVideo.key)
+                } else {
+                    VideosUiState.Error
+                }
+            } catch (e: IOException) {
+                VideosUiState.Error
+            } catch (e: HttpException) {
+                VideosUiState.Error
             }
         }
     }

@@ -30,6 +30,16 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.MediaItem
 import androidx.media3.ui.PlayerView
 import com.example.moviedb2025.utils.Constants.EXAMPLE_VIDEO_URI
+import com.example.moviedb2025.viewmodel.VideosUiState
+
+
+import android.view.ViewGroup
+import android.widget.FrameLayout
+import androidx.compose.runtime.*
+import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
+import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
+import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
+import androidx.compose.ui.platform.LocalLifecycleOwner
 
 @Composable
 fun MovieReviewsScreen(
@@ -39,11 +49,21 @@ fun MovieReviewsScreen(
     // Load reviews when entering this screen
     androidx.compose.runtime.LaunchedEffect(movieId) {
         viewModel.getMovieReviews(movieId)
+        viewModel.getMovieVideos(movieId)
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
         // ExoPlayerView at the top
         ExoPlayerView()
+
+        //Youtube videos
+        when (val state = viewModel.videosUiState) {
+            is VideosUiState.Loading -> Text("Loading trailer...", Modifier.padding(16.dp))
+            is VideosUiState.Error -> Text("Trailer not available.", Modifier.padding(16.dp))
+            is VideosUiState.Success -> {
+                YouTubePlayerComposable(videoId = state.videoKey, modifier = Modifier.height(200.dp))
+            }
+        }
 
         // Reviews section
         when (val state = viewModel.reviewsUiState) {
@@ -96,6 +116,35 @@ fun ReviewCard(review: Review) {
     }
 }
 
+@Composable
+fun YouTubePlayerComposable(videoId: String, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    AndroidView(
+        factory = { context ->
+            val youTubePlayerView = YouTubePlayerView(context).apply {
+                layoutParams = FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                )
+                lifecycleOwner.lifecycle.addObserver(this)
+            }
+
+            youTubePlayerView.addYouTubePlayerListener(object : AbstractYouTubePlayerListener() {
+                override fun onReady(youTubePlayer: YouTubePlayer) {
+                    youTubePlayer.loadVideo(videoId, 0f)
+                }
+            })
+
+            youTubePlayerView
+        },
+        modifier = modifier
+    )
+}
+
+
+
 @OptIn(UnstableApi::class)
 @Composable
 fun ExoPlayerView() {
@@ -139,9 +188,9 @@ fun ExoPlayerView() {
     )
 }
 
-@Preview(showBackground = true)
-@Composable
-fun ExoPlayerPreview() {
-        ExoPlayerView()
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun ExoPlayerPreview() {
+//        ExoPlayerView()
+//}
 
