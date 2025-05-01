@@ -65,7 +65,7 @@ open class MovieDBViewModel(private val moviesRepository: MoviesRepository) : Vi
     }
 
     fun getPopularMovies() {
-        viewModelScope.launch {
+        viewModelScope.launch { //launch coroutine using viewModelScope.launch
             movieListUiState = MovieListUiState.Loading
             movieListUiState = try {
                 MovieListUiState.Success(moviesRepository.getPopularMovies().results)

@@ -36,7 +36,8 @@ import androidx.navigation.NavType
 enum class MovieDBScreen(@StringRes val title: Int){
     List(title = R.string.app_name),
     Detail(title = R.string.movie_detail),
-    Favorites(title = R.string.favorites)
+    Favorites(title = R.string.favorites),
+    Reviews(title = R.string.reviews)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -87,7 +88,7 @@ fun MovieDBApp(
         MovieDBScreen.List.name -> MovieDBScreen.List
         MovieDBScreen.Detail.name -> MovieDBScreen.Detail
         MovieDBScreen.Favorites.name -> MovieDBScreen.Favorites
-        "Reviews" -> MovieDBScreen.Detail // Treat Reviews like Detail for AppBar (or create special logic)
+        MovieDBScreen.Reviews.name -> MovieDBScreen.Reviews // Treat Reviews like Detail for AppBar (or create special logic)
         else -> MovieDBScreen.List
     }
 
@@ -146,7 +147,7 @@ fun MovieDBApp(
             }
 
             composable(
-                route = "Reviews/{movieId}",
+                route = "${MovieDBScreen.Reviews.name}/{movieId}", //dynamic route; needs movieID to load specific data
                 arguments = listOf(navArgument("movieId") { type = NavType.LongType })
             ) { backStackEntry ->
                 val movieId = backStackEntry.arguments?.getLong("movieId") ?: 0L

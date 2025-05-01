@@ -28,7 +28,7 @@ class DefaultAppContainer : AppContainer { // implements the AppContainer interf
         ignoreUnknownKeys = true
     }
 
-    @OptIn(ExperimentalSerializationApi::class)
+    @OptIn(ExperimentalSerializationApi::class) //RETROFIT library communicates with the backend; providing the necessary code to retrieve data as long as we provide the URIs for the webservice
     private val retrofit: Retrofit = Retrofit.Builder()
         .client(
             okhttp3.OkHttpClient.Builder()
