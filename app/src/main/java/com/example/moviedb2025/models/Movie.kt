@@ -24,16 +24,33 @@ data class Movie(
     var overview: String,
 
     @SerialName(value = "genre_ids")
-    val genresIds: List<Int> = emptyList(), // << changed
+    val genreIds: List<Int> = emptyList(),
+
+    @SerialName(value = "genres")
+    val genres: List<Genre> = emptyList(),
 
     @SerialName(value = "homepage")
-    val homepage: String? = null, // << made nullable
+    val homepage: String? = null,
 
     @SerialName(value = "imdb_id")
-    val imdbId: String? = null // << made nullable
+    val imdbId: String? = null
 )
 
-fun getGenreNames(genreIds: List<Int>): List<String> {
+@Serializable
+data class Genre(
+    val id: Int,
+    val name: String
+)
+
+fun Movie.getGenreNames(): List<String> {
+    return if (genres.isNotEmpty()) {
+        genres.map { it.name }
+    } else {
+        getGenreNamesFromIds(genreIds)
+    }
+}
+
+fun getGenreNamesFromIds(genreIds: List<Int>): List<String> {
     val genreMap = mapOf(
         28 to "Action",
         12 to "Adventure",

@@ -21,6 +21,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.moviedb2025.models.Movie
+import com.example.moviedb2025.models.getGenreNames
 import com.example.moviedb2025.ui.GenreChips
 import com.example.moviedb2025.utils.Constants
 import com.example.moviedb2025.viewmodel.MovieListUiState
@@ -100,7 +101,7 @@ fun MovieListItemCard(movie: Movie,
                 Spacer(modifier = Modifier.size(8.dp))
 
                 GenreChips(
-                    genreIds = movie.genresIds, // Pass genre IDs directly
+                    genreNames = movie.getGenreNames(),
                     modifier = Modifier.fillMaxWidth()
                 )
 

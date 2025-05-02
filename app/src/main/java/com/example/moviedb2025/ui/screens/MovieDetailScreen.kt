@@ -27,8 +27,11 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
+import com.example.moviedb2025.models.getGenreNames
 import com.example.moviedb2025.ui.GenreChips
 import com.example.moviedb2025.utils.Constants
 import com.example.moviedb2025.viewmodel.MovieDBViewModel
@@ -56,12 +59,10 @@ fun MovieDetailScreen(
                 modifier = modifier
                     .fillMaxSize()
                     .verticalScroll(scrollState) // scrollable in landscape
-                    .padding(16.dp)
             ) {
                 Box(
                     Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp)
+                        .fillMaxSize()
                 ) {
                     AsyncImage(
                         model = Constants.BACKDROP_IMAGE_BASE_URL + Constants.BACKDROP_IMAGE_BASE_WIDTH + movie.backdropPath,
@@ -73,88 +74,107 @@ fun MovieDetailScreen(
                     )
                 }
 
-                Text(
-                    text = movie.title,
-                    style = MaterialTheme.typography.headlineSmall
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Button(
-                    onClick = {
-                        if (isFavorite) {
-                            viewModel.removeFromFavorites(movie)
-                        } else {
-                            viewModel.addToFavorites(movie)
-                        }
-                    },
-                    modifier = Modifier.align(Alignment.Start)
-                ) {
-                    Text(text = if (isFavorite) "★ Favorited" else "☆ Add to Favorites")
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Text(
-                    text = "Release Date: ${movie.releaseDate}",
-                    style = MaterialTheme.typography.bodySmall
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // GenreChips(
-                   // genreIds = movie.genresIds, // Pass genre IDs directly
-                   // modifier = Modifier.fillMaxWidth()
-                // )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
                 Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxWidth()
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
                 ) {
-                    movie.homepage?.let { homepage ->
-                        if (homepage.isNotEmpty()) {
-                            LinkCard(text = "Open Homepage") {
-                                val intent = Intent(Intent.ACTION_VIEW, homepage.toUri())
-                                context.startActivity(intent)
+                    Text(
+                        text = movie.title,
+                        style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold)
+                    )
+
+                    Text(
+                        text = "Release Date: ${movie.releaseDate}",
+                        style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray)
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Button(
+                        onClick = {
+                            if (isFavorite) {
+                                viewModel.removeFromFavorites(movie)
+                            } else {
+                                viewModel.addToFavorites(movie)
                             }
-                        }
+                        },
+                        modifier = Modifier.fillMaxWidth().align(Alignment.Start)
+                    ) {
+                        Text(text = if (isFavorite) "★ Added to Favorites" else "☆ Add to Favorites")
                     }
 
-                    movie.imdbId?.let { imdbId ->
-                        if (imdbId.isNotEmpty()) {
-                            val imdbUrl = "https://www.imdb.com/title/$imdbId"
-                            LinkCard(text = "Open in IMDB") {
-                                val intent = Intent(Intent.ACTION_VIEW, imdbUrl.toUri()).apply {
-                                    setPackage("com.imdb.mobile")
-                                }
-                                try {
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Text(
+                        text = movie.overview,
+                        style = MaterialTheme.typography.bodyMedium,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    val genreNames = movie.getGenreNames()
+
+                    if (genreNames.isNotEmpty()) {
+                        GenreChips(
+                            genreNames = genreNames,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    } else {
+                        Text(
+                            text = "Genres not available",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.Gray
+                        )
+                    }
+
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        movie.homepage?.let { homepage ->
+                            if (homepage.isNotEmpty()) {
+                                LinkCard(text = "Open Homepage") {
+                                    val intent = Intent(Intent.ACTION_VIEW, homepage.toUri())
                                     context.startActivity(intent)
-                                } catch (e: ActivityNotFoundException) {
-                                    val fallbackIntent = Intent(Intent.ACTION_VIEW, imdbUrl.toUri())
-                                    context.startActivity(fallbackIntent)
+                                }
+                            }
+                        }
+
+                        movie.imdbId?.let { imdbId ->
+                            if (imdbId.isNotEmpty()) {
+                                val imdbUrl = "https://www.imdb.com/title/$imdbId"
+                                LinkCard(text = "Open in IMDB") {
+                                    val intent = Intent(Intent.ACTION_VIEW, imdbUrl.toUri()).apply {
+                                        setPackage("com.imdb.mobile")
+                                    }
+                                    try {
+                                        context.startActivity(intent)
+                                    } catch (e: ActivityNotFoundException) {
+                                        val fallbackIntent = Intent(Intent.ACTION_VIEW, imdbUrl.toUri())
+                                        context.startActivity(fallbackIntent)
+                                    }
                                 }
                             }
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Button(
+                        onClick = {
+                            println("Navigating to Reviews for movie id = ${movie.id}")
+                            navController.navigate("Reviews/${movie.id}")
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("See Reviews")
+                    }
                 }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Button(onClick = {
-                    println("Navigating to Reviews for movie id = ${movie.id}")
-                    navController.navigate("Reviews/${movie.id}")
-                }) {
-                    Text("See Reviews")
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = movie.overview,
-                    style = MaterialTheme.typography.bodySmall,
-                    overflow = TextOverflow.Ellipsis
-                )
             }
         }
 

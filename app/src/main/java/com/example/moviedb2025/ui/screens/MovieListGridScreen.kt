@@ -28,38 +28,37 @@ fun MovieListGridScreen(
     LazyVerticalGrid(
         columns = GridCells.Fixed(columns),
         modifier = modifier,
-    ) {when(movieListUiState) {
-        is MovieListUiState.Success -> {
-            items(movieListUiState.movies) { movie ->
-                MovieListGridItemCard(
-                    movie = movie,
-                    onMovieListItemClicked,
-                    modifier = Modifier.padding(12.dp)
-                )
+    ) {
+        when (movieListUiState) {
+            is MovieListUiState.Success -> {
+                items(movieListUiState.movies) { movie ->
+                    MovieListGridItemCard(
+                        movie = movie,
+                        onMovieListItemClicked = onMovieListItemClicked,
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
             }
-        }
-
-        is MovieListUiState.Loading -> {
-            item {
-                Text(
-                    text = "Loading...",
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(16.dp)
-                )
+            is MovieListUiState.Loading -> {
+                item {
+                    Text(
+                        text = "Loading...",
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
             }
-        }
-
-        is MovieListUiState.Error -> {
-            item {
-                Text(
-                    text = "Error: Something went wrong!",
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(16.dp)
-                )
+            is MovieListUiState.Error -> {
+                item {
+                    Text(
+                        text = "Error: Something went wrong!",
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
             }
         }
     }
-}
 }
 
 @Composable
@@ -79,10 +78,7 @@ fun MovieListGridItemCard(
         }
     ) {
         Column {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
+            Box(modifier = Modifier.fillMaxWidth()) {
                 AsyncImage(
                     model = Constants.POSTER_IMAGE_BASE_URL + Constants.POSTER_IMAGE_BASE_WIDTH + movie.posterPath,
                     contentDescription = movie.title,
@@ -95,7 +91,7 @@ fun MovieListGridItemCard(
             Column(
                 modifier = Modifier
                     .padding(4.dp)
-                    .fillMaxSize()
+                    .fillMaxWidth()
             ) {
                 Text(
                     text = movie.title,
@@ -105,10 +101,9 @@ fun MovieListGridItemCard(
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
-
                 Text(
                     text = movie.releaseDate,
-                        style = MaterialTheme.typography.labelSmall,
+                    style = MaterialTheme.typography.labelSmall,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -116,7 +111,6 @@ fun MovieListGridItemCard(
         }
     }
 }
-
 
 @Preview(showBackground = true)
 @Composable
@@ -127,8 +121,8 @@ fun MovieListGridItemCardPreview() {
         posterPath = "/yFHHfHcUgGAxziP1C3lLt0q2T4s.jpg",
         backdropPath = "/2Nti3gYAX513wvhp8IiLL6ZDyOm.jpg",
         releaseDate = "2025-03-31",
-        overview = "Four misfits find themselves struggling with ordinary problems when they are suddenly pulled through a mysterious portal into the Overworld: a bizarre, cubic wonderland that thrives on imagination. To get back home, they'll have to master this world while embarking on a magical quest with an unexpected, expert crafter, Steve.",
-        genresIds = listOf(28),
+        overview = "Four misfits are pulled through a mysterious portal into the Overworld...",
+        genreIds = listOf(28),
         homepage = "https://www.minecraft-movie.com",
         imdbId = "tt3566834"
     )
@@ -139,8 +133,7 @@ fun MovieListGridItemCardPreview() {
             onMovieListItemClicked = {},
             modifier = Modifier
                 .padding(8.dp)
-                .width(180.dp) // Set fixed width to simulate grid column
+                .width(180.dp)
         )
     }
 }
-
