@@ -25,6 +25,8 @@ import com.example.moviedb2025.utils.Constants.EXAMPLE_VIDEO_URI
 import com.example.moviedb2025.viewmodel.MovieDBViewModel
 import com.example.moviedb2025.viewmodel.ReviewsUiState
 import com.example.moviedb2025.viewmodel.VideosUiState
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.foundation.clickable
 
 @Composable
 fun MovieReviewsScreen(
@@ -71,6 +73,8 @@ fun MovieReviewsScreen(
 
 @Composable
 fun ReviewCard(review: Review) {
+    var expanded by remember { mutableStateOf(false) }
+
     Card(
         modifier = Modifier
             .width(300.dp)
@@ -82,11 +86,25 @@ fun ReviewCard(review: Review) {
                 text = review.author,
                 style = MaterialTheme.typography.titleMedium
             )
+
             Spacer(modifier = Modifier.height(8.dp))
+
             Text(
                 text = review.content,
                 style = MaterialTheme.typography.bodyMedium,
-                maxLines = 6
+                maxLines = if (expanded) Int.MAX_VALUE else 6,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text(
+                text = if (expanded) "See less" else "See more...",
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.labelSmall,
+                modifier = Modifier
+                    .padding(top = 4.dp)
+                    .clickable { expanded = !expanded }
             )
         }
     }
