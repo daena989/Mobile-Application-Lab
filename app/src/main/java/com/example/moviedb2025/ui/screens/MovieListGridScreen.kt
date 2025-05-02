@@ -70,7 +70,7 @@ fun MovieListGridItemCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .height(290.dp),
+            .wrapContentHeight(),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         shape = RectangleShape,
         onClick = {
