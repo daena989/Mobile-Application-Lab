@@ -41,15 +41,6 @@ fun MovieReviewsScreen(
         // ExoPlayerView at the top
         ExoPlayerView()
 
-        //Trailer video section
-        when (val state = viewModel.videosUiState) {
-            is VideosUiState.Loading -> Text("Loading trailer...", Modifier.padding(16.dp))
-            is VideosUiState.Error -> Text("No trailer available.", Modifier.padding(16.dp))
-            is VideosUiState.Success -> {
-                Text("Video key: ${state.videoKey}", Modifier.padding(16.dp))
-            }
-        }
-
         //Reviews section
         when (val state = viewModel.reviewsUiState) {
             is ReviewsUiState.Loading -> {
