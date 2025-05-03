@@ -47,7 +47,6 @@ fun MovieReviewsScreen(
             is VideosUiState.Error -> Text("Trailer not available.", Modifier.padding(16.dp))
         }
 
-
         //Reviews section
         when (val state = viewModel.reviewsUiState) {
             is ReviewsUiState.Loading -> {
@@ -60,6 +59,8 @@ fun MovieReviewsScreen(
                 if (state.reviews.isEmpty()) {
                     Text(text = "No reviews available.", modifier = Modifier.padding(16.dp))
                 } else {
+                    Spacer(modifier = Modifier.height(16.dp))
+
                     LazyRow(
                         modifier = Modifier
                             .fillMaxWidth()
