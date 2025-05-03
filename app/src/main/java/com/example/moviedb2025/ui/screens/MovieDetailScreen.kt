@@ -167,7 +167,6 @@ fun MovieDetailScreen(
 
                     Button(
                         onClick = {
-                            println("Navigating to Reviews for movie id = ${movie.id}")
                             navController.navigate("Reviews/${movie.id}")
                         },
                         modifier = Modifier.fillMaxWidth()
