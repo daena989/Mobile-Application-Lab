@@ -13,18 +13,18 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.media3.common.MediaItem
-import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.ui.PlayerView
 import com.example.moviedb2025.models.Review
-import com.example.moviedb2025.utils.Constants.EXAMPLE_VIDEO_URI
 import com.example.moviedb2025.viewmodel.MovieDBViewModel
 import com.example.moviedb2025.viewmodel.ReviewsUiState
 import com.example.moviedb2025.viewmodel.VideosUiState
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
+import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
+import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
 
 @Composable
 fun MovieReviewsScreen(
@@ -38,8 +38,15 @@ fun MovieReviewsScreen(
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        // ExoPlayerView at the top
-        ExoPlayerView()
+        //Android Youtube Player
+        when (val state = viewModel.videosUiState) {
+            is VideosUiState.Success -> {
+                YouTubePlayerComposable(videoId = state.videoKey)
+            }
+            is VideosUiState.Loading -> Text("Loading trailer...", Modifier.padding(16.dp))
+            is VideosUiState.Error -> Text("Trailer not available.", Modifier.padding(16.dp))
+        }
+
 
         //Reviews section
         when (val state = viewModel.reviewsUiState) {
@@ -70,7 +77,36 @@ fun MovieReviewsScreen(
 }
 
 @Composable
+fun YouTubePlayerComposable(videoId: String, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+
+    AndroidView(
+        factory = {
+            YouTubePlayerView(context).apply {
+                layoutParams = FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                )
+                lifecycle.addObserver(this)
+
+                addYouTubePlayerListener(object : AbstractYouTubePlayerListener() {
+                    override fun onReady(youTubePlayer: YouTubePlayer) {
+                        youTubePlayer.loadVideo(videoId, 0f)
+                    }
+                })
+            }
+        },
+        modifier = modifier
+            .fillMaxWidth()
+            .height(200.dp)
+    )
+}
+
+@Composable
 fun ReviewCard(review: Review) {
+    var expanded by remember { mutableStateOf(false) }
+
     Card(
         modifier = Modifier
             .width(300.dp)
@@ -82,47 +118,26 @@ fun ReviewCard(review: Review) {
                 text = review.author,
                 style = MaterialTheme.typography.titleMedium
             )
+
             Spacer(modifier = Modifier.height(8.dp))
+
             Text(
                 text = review.content,
                 style = MaterialTheme.typography.bodyMedium,
-                maxLines = 6
+                maxLines = if (expanded) Int.MAX_VALUE else 6,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text(
+                text = if (expanded) "See less" else "See more...",
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.labelSmall,
+                modifier = Modifier
+                    .padding(top = 4.dp)
+                    .clickable { expanded = !expanded }
             )
         }
     }
-}
-
-@OptIn(UnstableApi::class)
-@Composable
-fun ExoPlayerView() {
-    val context = LocalContext.current
-    val exoPlayer = ExoPlayer.Builder(context).build()
-
-    val mediaSource = remember(EXAMPLE_VIDEO_URI) {
-        MediaItem.fromUri(EXAMPLE_VIDEO_URI)
-    }
-
-    if (!LocalInspectionMode.current) {
-        LaunchedEffect(mediaSource) {
-            exoPlayer.setMediaItem(mediaSource)
-            exoPlayer.prepare()
-        }
-    }
-
-    DisposableEffect(Unit) {
-        onDispose {
-            exoPlayer.release()
-        }
-    }
-
-    AndroidView(
-        factory = { ctx ->
-            PlayerView(ctx).apply {
-                player = exoPlayer
-            }
-        },
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(200.dp)
-    )
 }

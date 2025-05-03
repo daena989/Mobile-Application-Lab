@@ -8,9 +8,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.moviedb2025.models.Movie
@@ -23,8 +25,12 @@ fun MovieListGridScreen(
     movieListUiState: MovieListUiState,
     onMovieListItemClicked: (Movie) -> Unit,
     modifier: Modifier = Modifier,
-    columns: Int = 2
+    minCardWidth: Dp = 180.dp
 ) {
+    val configuration = LocalConfiguration.current
+    val screenWidthDp = configuration.screenWidthDp.dp
+    val columns = maxOf((screenWidthDp / minCardWidth).toInt(), 1)
+
     LazyVerticalGrid(
         columns = GridCells.Fixed(columns),
         modifier = modifier,
@@ -35,7 +41,7 @@ fun MovieListGridScreen(
                     MovieListGridItemCard(
                         movie = movie,
                         onMovieListItemClicked = onMovieListItemClicked,
-                        modifier = Modifier.padding(12.dp)
+                        modifier = Modifier.padding(8   .dp)
                     )
                 }
             }
