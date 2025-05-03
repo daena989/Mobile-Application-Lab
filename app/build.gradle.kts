@@ -64,9 +64,8 @@ dependencies {
     implementation(libs.kotlinx.serialization.json.v180)
     implementation(libs.logging.interceptor)
 
-    //ExoPlayer
-    implementation(libs.androidx.media3.exoplayer)
-    implementation(libs.androidx.media3.ui)
+    //Android Youtube Player
+    implementation(libs.android.youtube.player)
 
     implementation(libs.retrofit2.kotlinx.serialization.converter)
     implementation(libs.logging.interceptor)

@@ -12,6 +12,7 @@ import com.example.moviedb2025.MovieDBApplication
 import com.example.moviedb2025.database.MoviesRepository
 import com.example.moviedb2025.models.Movie
 import com.example.moviedb2025.models.Review
+import com.example.moviedb2025.utils.Constants
 
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
@@ -134,6 +135,7 @@ open class MovieDBViewModel(private val moviesRepository: MoviesRepository) : Vi
 
     fun getMovieVideos(movieId: Long) {
         viewModelScope.launch {
+            println("Fetching videos for movieId=$movieId using API key: ${Constants.API_KEY}")
             videosUiState = VideosUiState.Loading
             videosUiState = try {
                 val videos = moviesRepository.getMovieVideos(movieId).results
@@ -148,11 +150,14 @@ open class MovieDBViewModel(private val moviesRepository: MoviesRepository) : Vi
                 if (youtubeVideo != null) {
                     VideosUiState.Success(youtubeVideo.key)
                 } else {
+                    println("No valid YouTube videos found.")
                     VideosUiState.Error
                 }
             } catch (e: IOException) {
+                println("Failed to fetch video: ${e.message}")
                 VideosUiState.Error
             } catch (e: HttpException) {
+                println("Failed to fetch video: ${e.message}")
                 VideosUiState.Error
             }
         }

@@ -36,7 +36,7 @@ interface MovieDBApiService {
         @Query("api_key") apiKey: String = Constants.API_KEY
     ): ReviewResponse
 
-    @GET("movie/{movie_id}/videos")
+    @GET("{movie_id}/videos")
     suspend fun getMovieVideos(
         @Path("movie_id") movieId: Long,
         @Query("api_key") apiKey: String = Constants.API_KEY

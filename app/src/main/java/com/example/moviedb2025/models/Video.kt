@@ -19,7 +19,7 @@ data class Video(
     val type: String,
 
     @SerialName(value = "official")
-    val official: Boolean,
+    val official: Boolean
 
 )
 
