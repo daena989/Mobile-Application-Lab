@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("org.jetbrains.kotlin.plugin.serialization")
+    id("com.google.devtools.ksp") version "2.1.0-1.0.29"
 }
 
 android {
@@ -64,20 +65,21 @@ dependencies {
     implementation(libs.kotlinx.serialization.json.v180)
     implementation(libs.logging.interceptor)
 
-
     //ExoPlayer
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.ui)
 
-    // in .kts
-    implementation(libs.androidx.media3.exoplayer.v120)
-    implementation(libs.androidx.media3.ui.v120)
 
     implementation(libs.retrofit2.kotlinx.serialization.converter)
     implementation(libs.logging.interceptor)
 
     //YouTube Android Player Library
     implementation(libs.core)
+
+    //Room
+    implementation(libs.androidx.room.runtime)
+    ksp("androidx.room:room-compiler:${rootProject.extra["room_version"]}")
+    implementation(libs.androidx.room.ktx)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
