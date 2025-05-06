@@ -1,7 +1,7 @@
 package com.example.moviedb2025.database
 
 
-
+import android.content.Context
 //import android.provider.SyncStateContract
 import com.example.moviedb2025.network.MovieDBApiService
 import com.example.moviedb2025.utils.Constants
@@ -14,9 +14,10 @@ import retrofit2.Retrofit
 
 interface AppContainer { // Provides the necessary dependencies (MovieRepository)
     val moviesRepository: MoviesRepository
+    val savedMoviesRepository: SavedMoviesRepository
 }
 
-class DefaultAppContainer : AppContainer { // implements the AppContainer interface
+class DefaultAppContainer (private val context: Context): AppContainer { // implements the AppContainer interface
 
     fun getLoggerInterceptor(): HttpLoggingInterceptor {
         val logging = HttpLoggingInterceptor()
@@ -47,5 +48,9 @@ class DefaultAppContainer : AppContainer { // implements the AppContainer interf
 
     override val moviesRepository: MoviesRepository by lazy {
         NetworkMoviesRepository(retrofitService)
+    }
+
+    override val savedMoviesRepository: SavedMoviesRepository by lazy {
+        FavoriteMoviesRepository(MovieDatabase.getDatabase(context).movieDao())
     }
 }

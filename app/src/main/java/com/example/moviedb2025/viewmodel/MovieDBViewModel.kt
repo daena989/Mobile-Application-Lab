@@ -10,8 +10,10 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.moviedb2025.MovieDBApplication
 import com.example.moviedb2025.database.MoviesRepository
+import com.example.moviedb2025.database.SavedMoviesRepository
 import com.example.moviedb2025.models.Movie
 import com.example.moviedb2025.models.Review
+import com.example.moviedb2025.utils.Constants
 
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
@@ -25,7 +27,7 @@ sealed interface MovieListUiState {
 }
 
 sealed interface SelectedMovieUiState {
-    data class Success(val movie: Movie) : SelectedMovieUiState
+    data class Success(val movie: Movie, val isFavorite: Boolean) : SelectedMovieUiState
     object Error : SelectedMovieUiState
     object Loading : SelectedMovieUiState
 }
@@ -43,7 +45,8 @@ sealed interface VideosUiState {
 }
 
 
-open class MovieDBViewModel(private val moviesRepository: MoviesRepository) : ViewModel() {
+class MovieDBViewModel(private val moviesRepository: MoviesRepository,
+                       private val savedMoviesRepository: SavedMoviesRepository) : ViewModel() {
 
     var movieListUiState: MovieListUiState by mutableStateOf(MovieListUiState.Loading)
         private set
@@ -61,7 +64,7 @@ open class MovieDBViewModel(private val moviesRepository: MoviesRepository) : Vi
         getPopularMovies()
     }
 
-    private fun getTopRatedMovies() {
+    fun getTopRatedMovies() {
         viewModelScope.launch {
             movieListUiState = MovieListUiState.Loading
             movieListUiState = try {
@@ -93,7 +96,7 @@ open class MovieDBViewModel(private val moviesRepository: MoviesRepository) : Vi
             selectedMovieUiState = try {
                 // Fetch full movie details from the API
                 val fullMovie = moviesRepository.getMovieDetails(movie.id)
-                SelectedMovieUiState.Success(fullMovie)
+                SelectedMovieUiState.Success(fullMovie, savedMoviesRepository.getMovie(movie.id) != null)
             } catch (e: IOException) {
                 SelectedMovieUiState.Error
             } catch (e: HttpException) {
@@ -134,6 +137,7 @@ open class MovieDBViewModel(private val moviesRepository: MoviesRepository) : Vi
 
     fun getMovieVideos(movieId: Long) {
         viewModelScope.launch {
+            println("Fetching videos for movieId=$movieId using API key: ${Constants.API_KEY}")
             videosUiState = VideosUiState.Loading
             videosUiState = try {
                 val videos = moviesRepository.getMovieVideos(movieId).results
@@ -148,13 +152,43 @@ open class MovieDBViewModel(private val moviesRepository: MoviesRepository) : Vi
                 if (youtubeVideo != null) {
                     VideosUiState.Success(youtubeVideo.key)
                 } else {
+                    println("No valid YouTube videos found.")
                     VideosUiState.Error
                 }
             } catch (e: IOException) {
+                println("Failed to fetch video: ${e.message}")
                 VideosUiState.Error
             } catch (e: HttpException) {
+                println("Failed to fetch video: ${e.message}")
                 VideosUiState.Error
             }
+        }
+    }
+
+    fun getSavedMovies() {
+        viewModelScope.launch {
+            movieListUiState = MovieListUiState.Loading
+            movieListUiState = try {
+                MovieListUiState.Success(savedMoviesRepository.getSavedMovies())
+            } catch (e: IOException) {
+                MovieListUiState.Error
+            } catch (e: HttpException) {
+                MovieListUiState.Error
+            }
+        }
+    }
+
+    fun saveMovie(movie: Movie){
+        viewModelScope.launch {
+            savedMoviesRepository.insertMovie(movie)
+            selectedMovieUiState = SelectedMovieUiState.Success(movie, true)
+        }
+    }
+
+    fun deleteMovie(movie: Movie){
+        viewModelScope.launch {
+            savedMoviesRepository.deleteMovie( movie)
+            selectedMovieUiState = SelectedMovieUiState.Success(movie, true)
         }
     }
 
@@ -163,8 +197,8 @@ open class MovieDBViewModel(private val moviesRepository: MoviesRepository) : Vi
             initializer {
                 val application = (this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as MovieDBApplication)
                 val moviesRepository = application.container.moviesRepository
-                MovieDBViewModel(moviesRepository = moviesRepository)
-            }
+                val savedMoviesRepository = application.container.savedMoviesRepository
+                MovieDBViewModel(moviesRepository = moviesRepository, savedMoviesRepository = savedMoviesRepository)            }
         }
     }
 }

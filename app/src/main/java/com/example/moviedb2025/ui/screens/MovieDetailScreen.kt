@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Switch
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.moviedb2025.ui.GenreChips
@@ -38,12 +40,13 @@ import com.example.moviedb2025.viewmodel.SelectedMovieUiState
 
 @Composable
 fun MovieDetailScreen(
-    viewModel: MovieDBViewModel,
-    selectedMovieUiState: SelectedMovieUiState,
+    movieDBViewModel: MovieDBViewModel,
+    //selectedMovieUiState: SelectedMovieUiState,
     modifier: Modifier = Modifier,
     navController: NavHostController
 ) {
-    val favoriteMovies = viewModel.favoriteMovies  // Now getting the favoriteMovies state
+    val favoriteMovies = movieDBViewModel.favoriteMovies  // Now getting the favoriteMovies state
+    val selectedMovieUiState = movieDBViewModel.selectedMovieUiState
     val context = LocalContext.current
 
     when (selectedMovieUiState) {
@@ -83,14 +86,28 @@ fun MovieDetailScreen(
                 Button(
                     onClick = {
                         if (isFavorite) {
-                            viewModel.removeFromFavorites(movie)
+                            movieDBViewModel.removeFromFavorites(movie)
                         } else {
-                            viewModel.addToFavorites(movie)
+                            movieDBViewModel.addToFavorites(movie)
                         }
                     },
                     modifier = Modifier.align(Alignment.Start)
                 ) {
                     Text(text = if (isFavorite) "★ Favorited" else "☆ Add to Favorites")
+                }
+
+                Row {
+                    Text(
+                        text = "Favorite",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Switch(checked = selectedMovieUiState.isFavorite, onCheckedChange = {
+                        if (it)
+                            movieDBViewModel.saveMovie(selectedMovieUiState.movie)
+                        else
+                            movieDBViewModel.deleteMovie(selectedMovieUiState.movie)
+
+                    })
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))

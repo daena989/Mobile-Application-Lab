@@ -5,7 +5,10 @@ import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -68,17 +71,15 @@ fun MovieListGridItemCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .height(450.dp), // fixed height for uniform grid cards
+            .wrapContentHeight(),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+        shape = RectangleShape,
         onClick = {
             onMovieListItemClicked(movie)
         }
     ) {
         Column {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp) // Padding around image inside the card
-            ) {
+            Box(modifier = Modifier.fillMaxWidth()) {
                 AsyncImage(
                     model = Constants.POSTER_IMAGE_BASE_URL + Constants.POSTER_IMAGE_BASE_WIDTH + movie.posterPath,
                     contentDescription = movie.title,
@@ -90,38 +91,22 @@ fun MovieListGridItemCard(
             }
             Column(
                 modifier = Modifier
-                    .padding(8.dp)
+                    .padding(4.dp)
                     .fillMaxWidth()
             ) {
                 Text(
                     text = movie.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Text(
-                    text = movie.releaseDate,
-                    style = MaterialTheme.typography.bodySmall
-                )
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                GenreChips(
-                    genreIds = movie.genresIds, // Pass genre IDs directly
+                    style = MaterialTheme.typography.titleSmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
-
-                Spacer(modifier = Modifier.height(4.dp))
-
                 Text(
-                    text = movie.overview,
-                    style = MaterialTheme.typography.bodySmall,
-                    minLines = 1,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis
+                    text = movie.releaseDate,
+                    style = MaterialTheme.typography.labelSmall,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
         }

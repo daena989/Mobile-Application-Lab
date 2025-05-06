@@ -53,16 +53,16 @@ fun MovieReviewsScreen(
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        // ExoPlayerView at the top
+        // Exoplayer
         ExoPlayerView()
 
-        //Youtube videos
+        //Android Youtube Player
         when (val state = viewModel.videosUiState) {
+            is VideosUiState.Success -> {
+                YouTubePlayerComposable(videoId = state.videoKey)
+            }
             is VideosUiState.Loading -> Text("Loading trailer...", Modifier.padding(16.dp))
             is VideosUiState.Error -> Text("Trailer not available.", Modifier.padding(16.dp))
-            is VideosUiState.Success -> {
-                YouTubePlayerComposable(videoId = state.videoKey, modifier = Modifier.height(200.dp))
-            }
         }
 
         // Reviews section
@@ -119,31 +119,29 @@ fun ReviewCard(review: Review) {
 @Composable
 fun YouTubePlayerComposable(videoId: String, modifier: Modifier = Modifier) {
     val context = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
 
     AndroidView(
-        factory = { context ->
-            val youTubePlayerView = YouTubePlayerView(context).apply {
+        factory = {
+            YouTubePlayerView(context).apply {
                 layoutParams = FrameLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT
                 )
-                lifecycleOwner.lifecycle.addObserver(this)
+                lifecycle.addObserver(this)
+
+                addYouTubePlayerListener(object : AbstractYouTubePlayerListener() {
+                    override fun onReady(youTubePlayer: YouTubePlayer) {
+                        youTubePlayer.loadVideo(videoId, 0f)
+                    }
+                })
             }
-
-            youTubePlayerView.addYouTubePlayerListener(object : AbstractYouTubePlayerListener() {
-                override fun onReady(youTubePlayer: YouTubePlayer) {
-                    youTubePlayer.loadVideo(videoId, 0f)
-                }
-            })
-
-            youTubePlayerView
         },
         modifier = modifier
+            .fillMaxWidth()
+            .height(200.dp)
     )
 }
-
-
 
 @OptIn(UnstableApi::class)
 @Composable

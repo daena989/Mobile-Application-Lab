@@ -7,6 +7,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -18,6 +21,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -47,13 +53,52 @@ fun MovieDBAppBar(
     canNavigateBack: Boolean,
     navigateUp: () -> Unit,
     modifier: Modifier = Modifier,
+    movieDBViewModel: MovieDBViewModel,
     onFavoritesClick: () -> Unit = {} // Add onFavoritesClick for List screen
 ) {
+    var menuExpanded by remember { mutableStateOf(false) }
+
     TopAppBar(
         title = { Text(stringResource(currentScreen.title)) },
         colors = TopAppBarDefaults.mediumTopAppBarColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer
         ),
+        actions = {
+            IconButton(onClick = {
+                menuExpanded = !menuExpanded
+
+            }){
+                Icon(
+                    imageVector = Icons.Filled.MoreVert,
+                    contentDescription = "Open menu to select different movie lists"
+                )
+            }
+            DropdownMenu(expanded = menuExpanded, onDismissRequest = {menuExpanded = false}) {
+                DropdownMenuItem(onClick = {
+                    movieDBViewModel.getPopularMovies()
+                    menuExpanded = false
+                },
+                    text = {
+                        Text(stringResource(R.string.popular_movies))
+                    })
+
+                DropdownMenuItem(onClick = {
+                    movieDBViewModel.getTopRatedMovies()
+                    menuExpanded = false
+                },
+                    text = {
+                        Text(stringResource(R.string.top_rated_movies))
+                    })
+                DropdownMenuItem(onClick = {
+                    movieDBViewModel.getSavedMovies()
+                    menuExpanded = false
+                },
+                    text = {
+                        Text(stringResource(R.string.saved))
+                    })
+
+            }
+        },
         modifier = modifier,
         navigationIcon = {
             if (canNavigateBack) {
@@ -65,16 +110,16 @@ fun MovieDBAppBar(
                 }
             }
         },
-        actions = {
-            if (currentScreen == MovieDBScreen.List) {
-                IconButton(onClick = onFavoritesClick) {
-                    Icon(
-                        imageVector = Icons.Default.Favorite,
-                        contentDescription = stringResource(R.string.favorites)
-                    )
-                }
-            }
-        }
+//        actions = {
+//            if (currentScreen == MovieDBScreen.List) {
+//                IconButton(onClick = onFavoritesClick) {
+//                    Icon(
+//                        imageVector = Icons.Default.Favorite,
+//                        contentDescription = stringResource(R.string.favorites)
+//                    )
+//                }
+//            }
+//        }
     )
 }
 
@@ -100,6 +145,7 @@ fun MovieDBApp(
                 currentScreen = currentScreen,
                 canNavigateBack = navController.previousBackStackEntry != null,
                 navigateUp = { navController.navigateUp() },
+                movieDBViewModel = movieDBViewModel,
                 onFavoritesClick = {
                     navController.navigate(MovieDBScreen.Favorites.name)
                 }
@@ -127,8 +173,8 @@ fun MovieDBApp(
             }
             composable(route = MovieDBScreen.Detail.name) {
                 MovieDetailScreen(
-                    viewModel = movieDBViewModel,
-                    selectedMovieUiState = movieDBViewModel.selectedMovieUiState,
+                    movieDBViewModel = movieDBViewModel,
+                    //selectedMovieUiState = movieDBViewModel.selectedMovieUiState,
                     modifier = Modifier,
                     navController = navController
                 )
