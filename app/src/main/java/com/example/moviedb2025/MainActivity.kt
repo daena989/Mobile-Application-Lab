@@ -24,9 +24,6 @@ class MainActivity : ComponentActivity() {
         // Initialize the ViewModel
         viewModel = ViewModelProvider(this, MovieDBViewModel.Factory).get(MovieDBViewModel::class.java)
 
-        // Initialize WorkManagerRepository
-        viewModel.setWorkManagerRepo(applicationContext)
-
         setContent {
             MovieDB2025Theme {
                 Surface(
