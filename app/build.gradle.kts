@@ -64,6 +64,7 @@ dependencies {
     implementation(libs.coil.compose.v270)
     implementation(libs.kotlinx.serialization.json.v180)
     implementation(libs.logging.interceptor)
+    implementation(libs.retrofit)
 
     //ExoPlayer
     implementation(libs.androidx.media3.exoplayer)
@@ -83,6 +84,8 @@ dependencies {
 
     // Convertor
     implementation (libs.gson)
+    implementation (libs.retrofit.v2110)
+    implementation (libs.converter.gson)
 
     //WorkManager dependency
     implementation(libs.androidx.work.runtime.ktx)

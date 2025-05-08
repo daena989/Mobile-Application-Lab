@@ -1,5 +1,6 @@
 package com.example.moviedb2025.viewmodel
 
+import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -11,10 +12,11 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.moviedb2025.MovieDBApplication
 import com.example.moviedb2025.database.MoviesRepository
 import com.example.moviedb2025.database.SavedMoviesRepository
+import com.example.moviedb2025.database.WorkManagerRepository
 import com.example.moviedb2025.models.Movie
 import com.example.moviedb2025.models.Review
 import com.example.moviedb2025.utils.Constants
-
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
@@ -64,22 +66,68 @@ class MovieDBViewModel(private val moviesRepository: MoviesRepository,
         getPopularMovies()
     }
 
+    private lateinit var workManagerRepository: WorkManagerRepository
+
+    fun setWorkManagerRepo(context: Context) {
+        workManagerRepository = WorkManagerRepository(context)
+    }
+
+    private var currentListType: String by mutableStateOf("popular") // Default to popular
+
     fun getTopRatedMovies() {
         viewModelScope.launch {
             movieListUiState = MovieListUiState.Loading
-            movieListUiState = try {
-                MovieListUiState.Success(moviesRepository.getTopRatedMovies().results)
+            currentListType = "top_rated"
+
+            try {
+                // Try to get cached data first
+                val cachedMovies = moviesRepository.getCachedMovies("top_rated").first()
+                if (cachedMovies.isNotEmpty()) {
+                    movieListUiState = MovieListUiState.Success(cachedMovies)
+                    return@launch
+                }
+
+                // If no cache, fetch from network
+                workManagerRepository.enqueueFetchMoviesWork("top_rated")
+                workManagerRepository.enqueueCleanupWork("top_rated")
+
+                val networkMovies = moviesRepository.getTopRatedMovies().results
+                movieListUiState = MovieListUiState.Success(networkMovies)
+
             } catch (e: IOException) {
-                MovieListUiState.Error
+                // Handle offline case
+                val fallback = moviesRepository.getCachedMovies("top_rated").first()
+                movieListUiState = if (fallback.isNotEmpty()) {
+                    MovieListUiState.Success(fallback)
+                } else {
+                    MovieListUiState.Error
+                }
             } catch (e: HttpException) {
-                MovieListUiState.Error
+                movieListUiState = MovieListUiState.Error
             }
         }
     }
 
+//    fun getTopRatedMovies() {
+//        viewModelScope.launch {
+//            movieListUiState = MovieListUiState.Loading
+//            movieListUiState = try {
+//                MovieListUiState.Success(moviesRepository.getTopRatedMovies().results)
+//            } catch (e: IOException) {
+//                MovieListUiState.Error
+//            } catch (e: HttpException) {
+//                MovieListUiState.Error
+//            }
+//        }
+//    }
+
     fun getPopularMovies() {
-        viewModelScope.launch { //launch coroutine using viewModelScope.launch
+        viewModelScope.launch {
             movieListUiState = MovieListUiState.Loading
+
+            workManagerRepository.enqueueFetchMoviesWork("popular")
+            workManagerRepository.enqueueCleanupWork("popular")
+
             movieListUiState = try {
                 MovieListUiState.Success(moviesRepository.getPopularMovies().results)
             } catch (e: IOException) {
@@ -89,6 +137,19 @@ class MovieDBViewModel(private val moviesRepository: MoviesRepository,
             }
         }
     }
+
+//    fun getPopularMovies() {
+//        viewModelScope.launch { //launch coroutine using viewModelScope.launch
+//            movieListUiState = MovieListUiState.Loading
+//            movieListUiState = try {
+//                MovieListUiState.Success(moviesRepository.getPopularMovies().results)
+//            } catch (e: IOException) {
+//                MovieListUiState.Error
+//            } catch (e: HttpException) {
+//                MovieListUiState.Error
+//            }
+//        }
+//    }
 
     fun setSelectedMovie(movie: Movie) {
         viewModelScope.launch {

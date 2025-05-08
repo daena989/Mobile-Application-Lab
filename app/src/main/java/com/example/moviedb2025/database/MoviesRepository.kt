@@ -3,9 +3,11 @@ package com.example.moviedb2025.database
 import com.example.moviedb2025.models.Movie
 import com.example.moviedb2025.models.MovieResponse
 import com.example.moviedb2025.models.ReviewResponse
-import com.example.moviedb2025.models.Video
 import com.example.moviedb2025.models.VideoResponse
+import com.example.moviedb2025.models.toMovie
 import com.example.moviedb2025.network.MovieDBApiService
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 interface MoviesRepository { // defines the methods for fetching movie data; abstracts data source allowing the rest of the app to interact with the movie data without knowing the details
     suspend fun getPopularMovies(): MovieResponse
@@ -13,10 +15,14 @@ interface MoviesRepository { // defines the methods for fetching movie data; abs
     suspend fun getMovieDetails(movieId: Long): Movie
     suspend fun getMovieReviews(movieId: Long): ReviewResponse
     suspend fun getMovieVideos(movieId: Long): VideoResponse
+    suspend fun getCachedMovies(type: String): Flow<List<Movie>>
 }
 
 // NetworkMR class implements the MovieRepository interface
-class NetworkMoviesRepository(private val apiService: MovieDBApiService) : MoviesRepository { // Take an instance of MovieDBApiService as a constructor parameter to call diff methods in MovieDBApiService to fetch data and return as MovieResponse
+class NetworkMoviesRepository(
+    private val apiService: MovieDBApiService,
+    private val cachedMovieDao: CachedMovieDAO
+) : MoviesRepository { // Take an instance of MovieDBApiService as a constructor parameter to call diff methods in MovieDBApiService to fetch data and return as MovieResponse
     override suspend fun getPopularMovies(): MovieResponse {
         return apiService.getPopularMovies()
     }
@@ -36,6 +42,13 @@ class NetworkMoviesRepository(private val apiService: MovieDBApiService) : Movie
     override suspend fun getMovieVideos(movieId: Long): VideoResponse {
         return apiService.getMovieVideos(movieId)
     }
+
+    override suspend fun getCachedMovies(type: String): Flow<List<Movie>> {
+        return cachedMovieDao.getCachedMovies(type).map { cachedList ->
+            cachedList.map { it.toMovie() }
+        }
+    }
+
 }
 
 interface SavedMoviesRepository{

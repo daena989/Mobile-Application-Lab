@@ -114,29 +114,29 @@ fun MovieListGridItemCard(
 }
 
 
-@Preview(showBackground = true)
-@Composable
-fun MovieListGridItemCardPreview() {
-    val sampleMovie = Movie(
-        id = 1,
-        title = "A Minecraft Movie",
-        posterPath = "/yFHHfHcUgGAxziP1C3lLt0q2T4s.jpg",
-        backdropPath = "/2Nti3gYAX513wvhp8IiLL6ZDyOm.jpg",
-        releaseDate = "2025-03-31",
-        overview = "Four misfits find themselves struggling with ordinary problems when they are suddenly pulled through a mysterious portal into the Overworld: a bizarre, cubic wonderland that thrives on imagination. To get back home, they'll have to master this world while embarking on a magical quest with an unexpected, expert crafter, Steve.",
-        genresIds = listOf(28),
-        homepage = "https://www.minecraft-movie.com",
-        imdbId = "tt3566834"
-    )
-
-    MaterialTheme {
-        MovieListGridItemCard(
-            movie = sampleMovie,
-            onMovieListItemClicked = {},
-            modifier = Modifier
-                .padding(8.dp)
-                .width(180.dp) // Set fixed width to simulate grid column
-        )
-    }
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun MovieListGridItemCardPreview() {
+//    val sampleMovie = Movie(
+//        id = 1,
+//        title = "A Minecraft Movie",
+//        posterPath = "/yFHHfHcUgGAxziP1C3lLt0q2T4s.jpg",
+//        backdropPath = "/2Nti3gYAX513wvhp8IiLL6ZDyOm.jpg",
+//        releaseDate = "2025-03-31",
+//        overview = "Four misfits find themselves struggling with ordinary problems when they are suddenly pulled through a mysterious portal into the Overworld: a bizarre, cubic wonderland that thrives on imagination. To get back home, they'll have to master this world while embarking on a magical quest with an unexpected, expert crafter, Steve.",
+//        genresIds = listOf(28),
+//        homepage = "https://www.minecraft-movie.com",
+//        imdbId = "tt3566834"
+//    )
+//
+//    MaterialTheme {
+//        MovieListGridItemCard(
+//            movie = sampleMovie,
+//            onMovieListItemClicked = {},
+//            modifier = Modifier
+//                .padding(8.dp)
+//                .width(180.dp) // Set fixed width to simulate grid column
+//        )
+//    }
+//}
 

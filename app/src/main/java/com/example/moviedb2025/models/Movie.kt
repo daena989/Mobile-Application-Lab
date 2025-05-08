@@ -35,7 +35,10 @@ data class Movie(
     val homepage: String? = null, // << made nullable
 
     @SerialName(value = "imdb_id")
-    val imdbId: String? = null // << made nullable
+    val imdbId: String? = null, // << made nullable
+
+    @SerialName(value = "type")
+    val type: String
 )
 
 fun getGenreNames(genreIds: List<Int>): List<String> {
@@ -62,3 +65,5 @@ fun getGenreNames(genreIds: List<Int>): List<String> {
     )
     return genreIds.mapNotNull { genreMap[it] }
 }
+
+data class Genre(val id: Int, val name: String)

@@ -15,21 +15,30 @@ import retrofit2.Retrofit
 interface AppContainer { // Provides the necessary dependencies (MovieRepository)
     val moviesRepository: MoviesRepository
     val savedMoviesRepository: SavedMoviesRepository
+    val workManagerRepository: WorkManagerRepository
 }
 
-class DefaultAppContainer (private val context: Context): AppContainer { // implements the AppContainer interface
+class DefaultAppContainer(private val context: Context) : AppContainer {
+    // Room Database (single instance)
+    private val movieDatabase: MovieDatabase by lazy {
+        MovieDatabase.getDatabase(context)
+    }
 
+    // CachedMovieDao access
+    private val cachedMovieDao: CachedMovieDAO by lazy {
+        movieDatabase.cachedMovieDao()
+    }
+
+    // Retrofit setup (unchanged)
     fun getLoggerInterceptor(): HttpLoggingInterceptor {
         val logging = HttpLoggingInterceptor()
         logging.level = HttpLoggingInterceptor.Level.BODY
         return logging
     }
 
-    val movieDBJson = Json {
-        ignoreUnknownKeys = true
-    }
+    val movieDBJson = Json { ignoreUnknownKeys = true }
 
-    @OptIn(ExperimentalSerializationApi::class) //RETROFIT library communicates with the backend; providing the necessary code to retrieve data as long as we provide the URIs for the webservice
+    @OptIn(ExperimentalSerializationApi::class)
     private val retrofit: Retrofit = Retrofit.Builder()
         .client(
             okhttp3.OkHttpClient.Builder()
@@ -46,11 +55,21 @@ class DefaultAppContainer (private val context: Context): AppContainer { // impl
         retrofit.create(MovieDBApiService::class.java)
     }
 
+    // Updated MoviesRepository with caching support
     override val moviesRepository: MoviesRepository by lazy {
-        NetworkMoviesRepository(retrofitService)
+        NetworkMoviesRepository(
+            apiService = retrofitService,
+            cachedMovieDao = cachedMovieDao
+        )
     }
 
+    // SavedMoviesRepository (unchanged)
     override val savedMoviesRepository: SavedMoviesRepository by lazy {
-        FavoriteMoviesRepository(MovieDatabase.getDatabase(context).movieDao())
+        FavoriteMoviesRepository(movieDatabase.movieDao())
+    }
+
+    // Add WorkManagerRepository if needed
+    override val workManagerRepository: WorkManagerRepository by lazy {
+        WorkManagerRepository(context)
     }
 }

@@ -15,10 +15,10 @@
       </SelectionState>
       <SelectionState runConfigName="MovieDB2025.app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-05-05T23:47:34.452834800Z">
+        <DropdownSelection timestamp="2025-05-08T01:31:18.568329200Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\User\.android\avd\Medium_Phone.avd" />
+              <DeviceId pluginId="PhysicalDevice" identifier="serial=R5CW32K7PVY" />
             </handle>
           </Target>
         </DropdownSelection>
