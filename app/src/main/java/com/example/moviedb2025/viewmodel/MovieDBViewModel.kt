@@ -61,7 +61,7 @@ open class MovieDBViewModel(private val moviesRepository: MoviesRepository) : Vi
         getPopularMovies()
     }
 
-    private fun getTopRatedMovies() {
+    fun getTopRatedMovies() {
         viewModelScope.launch {
             movieListUiState = MovieListUiState.Loading
             movieListUiState = try {

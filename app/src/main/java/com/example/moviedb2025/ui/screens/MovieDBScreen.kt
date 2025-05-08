@@ -3,16 +3,22 @@
 package com.example.moviedb2025.ui.screens
 
 import androidx.annotation.StringRes
+import androidx.compose.material3.*
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.runtime.*
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -40,42 +46,74 @@ enum class MovieDBScreen(@StringRes val title: Int){
     Reviews(title = R.string.reviews)
 }
 
+enum class MovieCategory(val title: String) {
+    Popular("Popular"),
+    TopRated("Top Rated")
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MovieDBAppBar(
     currentScreen: MovieDBScreen,
     canNavigateBack: Boolean,
     navigateUp: () -> Unit,
+    selectedCategory: MovieCategory,
+    onCategorySelected: (MovieCategory) -> Unit,
     modifier: Modifier = Modifier,
     onFavoritesClick: () -> Unit = {} // Add onFavoritesClick for List screen
 ) {
-    TopAppBar(
-        title = { Text(stringResource(currentScreen.title)) },
-        colors = TopAppBarDefaults.mediumTopAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
-        ),
-        modifier = modifier,
-        navigationIcon = {
-            if (canNavigateBack) {
-                IconButton(onClick = navigateUp) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(R.string.back_button)
-                    )
+    Column {
+        TopAppBar(
+            title = { Text(stringResource(currentScreen.title)) },
+            colors = TopAppBarDefaults.mediumTopAppBarColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer
+            ),
+            navigationIcon = {
+                if (canNavigateBack) {
+                    IconButton(onClick = navigateUp) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = stringResource(R.string.back_button)
+                        )
+                    }
+                }
+            },
+            actions = {
+                if (currentScreen == MovieDBScreen.List) {
+                    IconButton(onClick = onFavoritesClick) {
+                        Icon(
+                            imageVector = Icons.Default.Favorite,
+                            contentDescription = stringResource(R.string.favorites)
+                        )
+                    }
                 }
             }
-        },
-        actions = {
-            if (currentScreen == MovieDBScreen.List) {
-                IconButton(onClick = onFavoritesClick) {
-                    Icon(
-                        imageVector = Icons.Default.Favorite,
-                        contentDescription = stringResource(R.string.favorites)
+        )
+
+        // Add the category tabs below the app bar
+        if (currentScreen == MovieDBScreen.List) {
+            TabRow(
+                selectedTabIndex = selectedCategory.ordinal,
+                modifier = Modifier.fillMaxWidth(),
+                containerColor = MaterialTheme.colorScheme.primaryContainer
+            ) {
+                MovieCategory.values().forEachIndexed { index, category ->
+                    Tab(
+                        selected = selectedCategory.ordinal == index,
+                        onClick = {
+                            onCategorySelected(category)
+                        },
+                        text = {
+                            Text(
+                                text = category.title,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                        }
                     )
                 }
             }
         }
-    )
+    }
 }
 
 @Composable
@@ -94,12 +132,23 @@ fun MovieDBApp(
 
     val movieDBViewModel: MovieDBViewModel = viewModel(factory = MovieDBViewModel.Factory)
 
+    var selectedCategory by remember { mutableStateOf(MovieCategory.Popular) }
+
     Scaffold(
         topBar = {
             MovieDBAppBar(
                 currentScreen = currentScreen,
                 canNavigateBack = navController.previousBackStackEntry != null,
                 navigateUp = { navController.navigateUp() },
+                selectedCategory = selectedCategory,
+                onCategorySelected = { category ->
+                    selectedCategory = category
+                    if (category == MovieCategory.Popular) {
+                        movieDBViewModel.getPopularMovies()
+                    } else {
+                        movieDBViewModel.getTopRatedMovies()
+                    }
+                },
                 onFavoritesClick = {
                     navController.navigate(MovieDBScreen.Favorites.name)
                 }
@@ -125,6 +174,7 @@ fun MovieDBApp(
                         .padding(16.dp)
                 )
             }
+
             composable(route = MovieDBScreen.Detail.name) {
                 MovieDetailScreen(
                     viewModel = movieDBViewModel,
