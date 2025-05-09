@@ -21,14 +21,20 @@ class WorkManagerRepository(private val context: Context) {
     private val workManager = WorkManager.getInstance(context)
 
     fun enqueueFetchMoviesWork(viewType: String) {
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
         // Fetch
         val fetchRequest = OneTimeWorkRequestBuilder<FetchMoviesWorker>()
-            .setInputData(workDataOf("viewType" to viewType))
+            .setInputData(workDataOf(FetchMoviesWorker.KEY_VIEW_STATE to viewType))
+            .setConstraints(constraints)
             .addTag(TAG_OUTPUT)
             .build()
 
         // Cleanup
         val cleanupRequest = OneTimeWorkRequestBuilder<CleanupWorker>()
+            .setInputData(workDataOf("type" to viewType))
             .build()
 
         // Chain the workers: Fetch -> Cleanup
@@ -44,7 +50,7 @@ class WorkManagerRepository(private val context: Context) {
 
     fun enqueueCleanupWork(selectedType: String) {
         val cleanupRequest = OneTimeWorkRequestBuilder<CleanupWorker>()
-            .setInputData(workDataOf("selected_type" to selectedType))
+            .setInputData(workDataOf("type" to selectedType))
             .build()
 
         workManager.enqueueUniqueWork(

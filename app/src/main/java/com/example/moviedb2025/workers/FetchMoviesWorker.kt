@@ -1,6 +1,7 @@
 package com.example.moviedb2025.workers
 
 import android.content.Context
+import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.example.moviedb2025.database.MovieDatabase
@@ -24,31 +25,37 @@ class FetchMoviesWorker(
 
     companion object {
         const val KEY_VIEW_STATE  = "view_state"
-        const val VIEW_POPULAR    = "Popular Movies"
-        const val VIEW_TOP_RATED  = "Top Rated Movies"
+        const val VIEW_POPULAR    = "popular"
+        const val VIEW_TOP_RATED  = "top_rated"
     }
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         val viewState = inputData.getString(KEY_VIEW_STATE) ?: VIEW_POPULAR
+        Log.d("FetchMoviesWorker", "Running worker with viewState = $viewState")
 
         return@withContext try {
-            // 1) Pick endpoint
-            val resp = when(viewState) {
+            val resp = when (viewState) {
                 VIEW_TOP_RATED -> RetrofitInstance.api.getTopRatedMovies(Constants.API_KEY)
-                else           -> RetrofitInstance.api.getPopularMovies(Constants.API_KEY)
+                else -> RetrofitInstance.api.getPopularMovies(Constants.API_KEY)
             }
 
-            // 2) Map & tag
-            val list = resp.results
-                .map { it.toCached(viewState) }
+            Log.d("FetchMoviesWorker", "API call successful. Results: ${resp.results.size}")
 
-            // 3) Clear old + insert new
+            val list = resp.results.map {
+                Log.d("FetchMoviesWorker", "Mapping movie: ${it.title}")
+                it.toCached(viewState)
+            }
+
+            Log.d("FetchMoviesWorker", "Mapped all movies. Count: ${list.size}")
+
             val db = MovieDatabase.getDatabase(applicationContext)
-            db.cachedMovieDao().clearAll()
             db.cachedMovieDao().insertAll(list)
+
+            Log.d("FetchMoviesWorker", "Inserted into DB.")
 
             Result.success()
         } catch (e: Exception) {
+            Log.e("FetchMoviesWorker", "Worker failed: ${e.message}", e)
             Result.retry()
         }
     }

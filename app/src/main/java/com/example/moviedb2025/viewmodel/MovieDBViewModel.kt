@@ -86,7 +86,6 @@ class MovieDBViewModel(
 
                 // If no cache, fetch from network
                 workManagerRepository.enqueueFetchMoviesWork("top_rated")
-                workManagerRepository.enqueueCleanupWork("top_rated")
 
                 val networkMovies = moviesRepository.getTopRatedMovies().results
                 movieListUiState = MovieListUiState.Success(networkMovies)
@@ -268,12 +267,12 @@ class MovieDBViewModel(
                 val application = (this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as MovieDBApplication)
                 val moviesRepository = application.container.moviesRepository
                 val savedMoviesRepository = application.container.savedMoviesRepository
-                val workManagerRepository = WorkManagerRepository(application.applicationContext)  // 👈 ADD THIS
+                val workManagerRepository = WorkManagerRepository(application.applicationContext)
 
                 MovieDBViewModel(
                     moviesRepository = moviesRepository,
                     savedMoviesRepository = savedMoviesRepository,
-                    workManagerRepository = workManagerRepository  // 👈 PASS IT IN
+                    workManagerRepository = workManagerRepository
                 )
             }
         }

@@ -25,7 +25,9 @@ class MainActivity : ComponentActivity() {
         viewModel = ViewModelProvider(this, MovieDBViewModel.Factory).get(MovieDBViewModel::class.java)
 
         setContent {
-            MovieDB2025Theme {
+            MovieDB2025Theme (
+                darkTheme = true
+            ){
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background

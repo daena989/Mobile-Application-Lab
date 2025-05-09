@@ -14,7 +14,7 @@ data class CachedMovie(
     val overview: String?,
     val popularity: Double,
     val poster_path: String?,
-    val release_date: String,
+    val release_date: String?,
     val title: String,
     val video: Boolean,
     val vote_average: Double,
@@ -28,7 +28,7 @@ fun CachedMovie.toMovie(): Movie {
         title = title,
         posterPath = poster_path ?: "",
         backdropPath = backdrop_path,
-        releaseDate = release_date,
+        releaseDate = release_date ?: "",
         overview = overview ?: "",
         genresIds = genres.map { it.id },
         homepage = null,
@@ -39,18 +39,18 @@ fun CachedMovie.toMovie(): Movie {
 fun Movie.toCached(viewType: String): CachedMovie {
     return CachedMovie(
         id = this.id.toInt(),
-        adult = false, // If not available in Movie, assume false or change accordingly
+        adult = false,
         backdrop_path = this.backdropPath,
-        genres = emptyList(), // You may need to fetch full genres separately
-        original_language = "en", // Adjust as needed
+        genres = emptyList(),
+        original_language = "en",
         original_title = this.title,
         overview = this.overview,
-        popularity = 0.0, // If not provided
+        popularity = 0.0,
         poster_path = this.posterPath,
-        release_date = this.releaseDate,
+        release_date = this.releaseDate ?: "Release Date Not Found",
         title = this.title,
         video = false,
-        vote_average = 0.0, // Replace with real data if available
+        vote_average = 0.0,
         vote_count = 0,
         viewType = viewType
     )

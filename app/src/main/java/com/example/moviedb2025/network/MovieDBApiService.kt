@@ -12,7 +12,7 @@ import retrofit2.http.Query
 
 interface MovieDBApiService {
 
-    @GET("popular") // @GET annotation tells Retrofit that it is a GET request; 'popular' is the end point
+    @GET("popular")
     suspend fun getPopularMovies(
         @Query("api_key")
         apiKey: String = Constants.API_KEY
@@ -36,7 +36,7 @@ interface MovieDBApiService {
         @Query("api_key") apiKey: String = Constants.API_KEY
     ): ReviewResponse
 
-    @GET("movie/{movie_id}/videos")
+    @GET("{movie_id}/videos")
     suspend fun getMovieVideos(
         @Path("movie_id") movieId: Long,
         @Query("api_key") apiKey: String = Constants.API_KEY
