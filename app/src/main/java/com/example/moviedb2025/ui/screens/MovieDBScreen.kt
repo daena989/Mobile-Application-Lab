@@ -59,7 +59,12 @@ fun MovieDBAppBar(
     var menuExpanded by remember { mutableStateOf(false) }
 
     TopAppBar(
-        title = { Text(stringResource(currentScreen.title)) },
+        title = {
+            Text(
+                text = stringResource(currentScreen.title),
+                modifier = Modifier.padding(start = 4.dp)
+            )
+        },
         colors = TopAppBarDefaults.mediumTopAppBarColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer
         ),
