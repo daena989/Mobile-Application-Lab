@@ -56,7 +56,7 @@ fun MovieListGridScreen(
                     Text(
                         text = "⚠️ You are viewing cached data",
                         color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.align(Alignment.Center)
+                        modifier = Modifier.align(Alignment.BottomCenter)
                     )
                 }
             }
