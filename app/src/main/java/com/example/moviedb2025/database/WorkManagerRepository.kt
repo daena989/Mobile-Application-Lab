@@ -40,7 +40,7 @@ class WorkManagerRepository(private val context: Context) {
         // Chain the workers: Fetch -> Cleanup
         val continuation = workManager.beginUniqueWork( // beginUniqueWork; only want one chain of work to run at a time
             "refresh_$viewType",
-            ExistingWorkPolicy.REPLACE,
+            ExistingWorkPolicy.KEEP,
             fetchRequest
         ).then(cleanupRequest)
 

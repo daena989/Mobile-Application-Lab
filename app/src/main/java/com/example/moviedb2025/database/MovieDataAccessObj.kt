@@ -15,7 +15,7 @@ interface MovieDataAcсessObj {
     suspend fun insertMovie(movie: Movie)
 
     @Query("SELECT * FROM favorite_movies WHERE id = :id" )
-    suspend fun getMovie(id: Long): Movie
+    suspend fun getMovie(id: Long): Movie?
 
     @Query("DELETE FROM favorite_movies WHERE id = :id")
     suspend fun deleteMovie(id: Long)

@@ -54,7 +54,7 @@ class NetworkMoviesRepository(
 interface SavedMoviesRepository{
     suspend fun getSavedMovies(): List<Movie>
     suspend fun insertMovie(movie: Movie)
-    suspend fun getMovie(id: Long): Movie
+    suspend fun getMovie(id: Long): Movie?
     suspend fun deleteMovie(movie: Movie)
 }
 
@@ -67,7 +67,7 @@ class FavoriteMoviesRepository(private val movieDAO: MovieDataAcсessObj):SavedM
         movieDAO.insertMovie(movie)
     }
 
-    override suspend fun getMovie(id: Long): Movie {
+    override suspend fun getMovie(id: Long): Movie? {
         return movieDAO.getMovie(id)
     }
 

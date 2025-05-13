@@ -24,6 +24,7 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
+import kotlinx.coroutines.flow.firstOrNull
 
 // Use sealed interface when loading from database/network
 sealed interface MovieListUiState {
@@ -215,19 +216,34 @@ class MovieDBViewModel(
         viewModelScope.launch {
             selectedMovieUiState = SelectedMovieUiState.Loading
             try {
-                // Try to fetch full movie details from the API
+                // First try API
                 val fullMovie = moviesRepository.getMovieDetails(movie.id)
                 val isFavorite = savedMoviesRepository.getMovie(movie.id) != null
                 selectedMovieUiState = SelectedMovieUiState.Success(fullMovie, isFavorite)
             } catch (e: IOException) {
                 try {
-                    // If API fails (e.g., offline), try to load from Room
-                    val fallbackMovie = savedMoviesRepository.getMovie(movie.id)
-                    if (fallbackMovie != null) {
-                        selectedMovieUiState = SelectedMovieUiState.Success(fallbackMovie, true)
-                    } else {
-                        selectedMovieUiState = SelectedMovieUiState.Error
+                    // Try saved favorites from Room
+                    val fallbackFavorite = savedMoviesRepository.getMovie(movie.id)
+                    if (fallbackFavorite != null) {
+                        selectedMovieUiState = SelectedMovieUiState.Success(fallbackFavorite, isFavorite = true)
+                        return@launch
                     }
+
+                    // Try cached list
+                    val cachedLists = listOf("popular", "top_rated")
+                    for (listType in cachedLists) {
+                        val cachedMovie = moviesRepository.getCachedMovies(listType).firstOrNull()
+                            ?.find { it.id == movie.id }
+
+                        if (cachedMovie != null) {
+                            selectedMovieUiState = SelectedMovieUiState.Success(cachedMovie, isFavorite = false)
+                            return@launch
+                        }
+                    }
+
+                    // Nothing worked
+                    selectedMovieUiState = SelectedMovieUiState.Error
+
                 } catch (e2: Exception) {
                     selectedMovieUiState = SelectedMovieUiState.Error
                 }
