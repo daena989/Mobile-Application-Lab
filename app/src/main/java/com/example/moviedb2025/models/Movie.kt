@@ -1,10 +1,14 @@
 package com.example.moviedb2025.models
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
+@Entity(tableName = "favorite_movies")
 data class Movie(
+    @PrimaryKey
     @SerialName(value = "id")
     var id: Long = 0L,
 
@@ -33,7 +37,10 @@ data class Movie(
     val homepage: String? = null,
 
     @SerialName(value = "imdb_id")
-    val imdbId: String? = null
+    val imdbId: String? = null,
+
+    @SerialName(value = "type")
+    val type: String? = null
 )
 
 @Serializable

@@ -11,7 +11,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -20,15 +22,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.moviedb2025.models.getGenreNames
@@ -37,23 +36,22 @@ import com.example.moviedb2025.utils.Constants
 import com.example.moviedb2025.viewmodel.MovieDBViewModel
 import com.example.moviedb2025.viewmodel.SelectedMovieUiState
 
-
-
 @Composable
 fun MovieDetailScreen(
-    viewModel: MovieDBViewModel,
-    selectedMovieUiState: SelectedMovieUiState,
+    movieDBViewModel: MovieDBViewModel,
+    //selectedMovieUiState: SelectedMovieUiState,
     modifier: Modifier = Modifier,
     navController: NavHostController
 ) {
-    val favoriteMovies = viewModel.favoriteMovies  // Now getting the favoriteMovies state
-    val context = LocalContext.current
+    val selectedMovieUiState = movieDBViewModel.selectedMovieUiState
 
     when (selectedMovieUiState) {
         is SelectedMovieUiState.Success -> {
+            val context = LocalContext.current
             val movie = selectedMovieUiState.movie
-            val isFavorite = favoriteMovies.any { it.id == movie.id }
+            val isFavorite = selectedMovieUiState.isFavorite
             val scrollState = rememberScrollState()
+            val genreNames = movie.getGenreNames()
 
             Column(
                 modifier = modifier
@@ -62,7 +60,7 @@ fun MovieDetailScreen(
             ) {
                 Box(
                     Modifier
-                        .fillMaxSize()
+                        .fillMaxWidth()
                 ) {
                     AsyncImage(
                         model = Constants.BACKDROP_IMAGE_BASE_URL + Constants.BACKDROP_IMAGE_BASE_WIDTH + movie.backdropPath,
@@ -73,48 +71,37 @@ fun MovieDetailScreen(
                             .height(200.dp)
                     )
                 }
-
                 Column(
                     Modifier
                         .fillMaxWidth()
                         .padding(16.dp)
                 ) {
                     Text(
-                        text = movie.title,
-                        style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold)
-                    )
-
-                    Text(
                         text = "Release Date: ${movie.releaseDate}",
                         style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray)
                     )
-
                     Spacer(modifier = Modifier.height(8.dp))
-
                     Button(
                         onClick = {
                             if (isFavorite) {
-                                viewModel.removeFromFavorites(movie)
+                                movieDBViewModel.deleteMovie(movie)
                             } else {
-                                viewModel.addToFavorites(movie)
+                                movieDBViewModel.saveMovie(movie)
                             }
                         },
-                        modifier = Modifier.fillMaxWidth().align(Alignment.Start)
+                        modifier = Modifier.align(Alignment.Start)
                     ) {
-                        Text(text = if (isFavorite) "★ Added to Favorites" else "☆ Add to Favorites")
+                        Text(
+                            text = if (isFavorite) "★ Added to Favorites" else "☆ Add to Favorites"
+                        )
                     }
-
                     Spacer(modifier = Modifier.height(16.dp))
-
                     Text(
                         text = movie.overview,
                         style = MaterialTheme.typography.bodyMedium,
                         overflow = TextOverflow.Ellipsis
                     )
-
                     Spacer(modifier = Modifier.height(16.dp))
-
-                    val genreNames = movie.getGenreNames()
 
                     if (genreNames.isNotEmpty()) {
                         GenreChips(
@@ -128,10 +115,7 @@ fun MovieDetailScreen(
                             color = Color.Gray
                         )
                     }
-
-
                     Spacer(modifier = Modifier.height(8.dp))
-
                     Column(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.fillMaxWidth()
@@ -155,24 +139,25 @@ fun MovieDetailScreen(
                                     try {
                                         context.startActivity(intent)
                                     } catch (e: ActivityNotFoundException) {
-                                        val fallbackIntent = Intent(Intent.ACTION_VIEW, imdbUrl.toUri())
+                                        val fallbackIntent =
+                                            Intent(Intent.ACTION_VIEW, imdbUrl.toUri())
                                         context.startActivity(fallbackIntent)
                                     }
                                 }
                             }
                         }
                     }
-
                     Spacer(modifier = Modifier.height(8.dp))
-
                     Button(
                         onClick = {
+                            println("Navigating to Reviews for movie id = ${movie.id}")
                             navController.navigate("Reviews/${movie.id}")
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text("See Reviews")
                     }
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
             }
         }

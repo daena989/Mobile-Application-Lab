@@ -1,7 +1,10 @@
 <resources>
     <string name="app_name">MovieDB2025</string>
-    <string name="movie_detail">Movie Details</string>
+    <string name="movie_detail">Movie details</string>
     <string name="back_button">back</string>
     <string name="favorites">Favorites</string>
     <string name="reviews">Reviews</string>
+    <string name="popular_movies">popular movies</string>
+    <string name="top_rated_movies">Top rated movies</string>
+    <string name="saved">saved</string>
 </resources>

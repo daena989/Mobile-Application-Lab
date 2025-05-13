@@ -9,4 +9,6 @@ object Constants {
     const val API_KEY = SECRETS.API_KEY
     const val EXAMPLE_VIDEO_URI = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
 
+    const val TAG_OUTPUT = "OUTPUT"
+
 }
