@@ -3,7 +3,7 @@ package com.example.moviedb2025.database
 import androidx.room.TypeConverter
 import com.example.moviedb2025.models.Genre
 import com.google.gson.Gson
-import com.google.common.reflect.TypeToken
+import com.google.gson.reflect.TypeToken
 import org.json.JSONArray
 import org.json.JSONObject
 
