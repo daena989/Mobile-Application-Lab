@@ -64,39 +64,41 @@ fun MovieDBAppBar(
             containerColor = MaterialTheme.colorScheme.primaryContainer
         ),
         actions = {
-            IconButton(onClick = {
-                menuExpanded = !menuExpanded
+            if (currentScreen == MovieDBScreen.List) {
+                var menuExpanded by remember { mutableStateOf(false) }
 
-            }){
-                Icon(
-                    imageVector = Icons.Filled.MoreVert,
-                    contentDescription = "Open menu to select different movie lists"
-                )
-            }
-            DropdownMenu(expanded = menuExpanded, onDismissRequest = {menuExpanded = false}) {
-                DropdownMenuItem(onClick = {
-                    movieDBViewModel.getPopularMovies()
-                    menuExpanded = false
-                },
-                    text = {
-                        Text(stringResource(R.string.popular_movies))
-                    })
+                IconButton(onClick = {
+                    menuExpanded = !menuExpanded
+                }) {
+                    Icon(
+                        imageVector = Icons.Filled.MoreVert,
+                        contentDescription = "Open menu to select different movie lists"
+                    )
+                }
 
-                DropdownMenuItem(onClick = {
-                    movieDBViewModel.getTopRatedMovies()
-                    menuExpanded = false
-                },
-                    text = {
-                        Text(stringResource(R.string.top_rated_movies))
-                    })
-                DropdownMenuItem(onClick = {
-                    movieDBViewModel.getSavedMovies()
-                    menuExpanded = false
-                },
-                    text = {
-                        Text(stringResource(R.string.saved))
-                    })
-
+                DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
+                    DropdownMenuItem(
+                        onClick = {
+                            movieDBViewModel.getPopularMovies()
+                            menuExpanded = false
+                        },
+                        text = { Text(stringResource(R.string.popular_movies)) }
+                    )
+                    DropdownMenuItem(
+                        onClick = {
+                            movieDBViewModel.getTopRatedMovies()
+                            menuExpanded = false
+                        },
+                        text = { Text(stringResource(R.string.top_rated_movies)) }
+                    )
+                    DropdownMenuItem(
+                        onClick = {
+                            movieDBViewModel.getSavedMovies()
+                            menuExpanded = false
+                        },
+                        text = { Text(stringResource(R.string.saved)) }
+                    )
+                }
             }
         },
         modifier = modifier,
