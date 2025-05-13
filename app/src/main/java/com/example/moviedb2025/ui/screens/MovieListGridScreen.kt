@@ -1,5 +1,6 @@
 package com.example.moviedb2025.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
@@ -50,6 +51,15 @@ fun MovieListGridScreen(
         }
 
         is MovieListUiState.Success -> {
+            if (movieListUiState.isFromCache) {
+                Box {
+                    Text(
+                        text = "⚠️ You are viewing cached data",
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                }
+            }
             LazyVerticalGrid(
                 columns = GridCells.Fixed(columns),
                 modifier = modifier

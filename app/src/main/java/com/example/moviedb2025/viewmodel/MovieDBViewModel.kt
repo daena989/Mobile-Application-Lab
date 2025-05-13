@@ -20,10 +20,14 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
 
 // Use sealed interface when loading from database/network
 sealed interface MovieListUiState {
-    data class Success(val movies: List<Movie>) : MovieListUiState
+    data class Success(val movies: List<Movie>, val isFromCache: Boolean = false) : MovieListUiState
     object Error : MovieListUiState
     object Loading : MovieListUiState
 }
@@ -46,11 +50,17 @@ sealed interface VideosUiState {
     object Loading : VideosUiState
 }
 
+enum class ListType {
+    POPULAR,
+    TOP_RATED,
+    SAVED
+}
 
 class MovieDBViewModel(
     private val moviesRepository: MoviesRepository,
     private val savedMoviesRepository: SavedMoviesRepository,
-    private val workManagerRepository: WorkManagerRepository
+    private val workManagerRepository: WorkManagerRepository,
+    private val connectivityManager: ConnectivityManager,
 ) : ViewModel() {
 
     var movieListUiState: MovieListUiState by mutableStateOf(MovieListUiState.Loading)
@@ -65,36 +75,93 @@ class MovieDBViewModel(
     var videosUiState: VideosUiState by mutableStateOf(VideosUiState.Loading)
         private set
 
+    var isNetworkAvailable by mutableStateOf(false)
+        private set
+
+    private var cachedMovies: List<Movie>? = null
+    private var cachedListType: ListType? = null
+    private var currentMovieId: Long? = null
+    private var currentListType: ListType = ListType.POPULAR //Default to popular page
+
+    private val networkRequest = NetworkRequest.Builder()
+        .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+        .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+        .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
+        .build()
+
+    private val networkCallback = object : ConnectivityManager.NetworkCallback() {
+        override fun onAvailable(network: Network) {
+            super.onAvailable(network)
+            isNetworkAvailable = true
+            println("Network Available: $isNetworkAvailable")
+            refreshCurrentList()
+            currentMovieId?.let {
+                getMovieReviews(it)
+                getMovieVideos(it)
+            }
+        }
+
+        override fun onLost(network: Network) {
+            super.onLost(network)
+            isNetworkAvailable = false
+            println("Network Available: $isNetworkAvailable")
+        }
+    }
+
     init {
+        registerNetworkCallback()
         getPopularMovies()
     }
 
-    private var currentListType: String by mutableStateOf("popular") // Default to popular
+    private fun registerNetworkCallback() {
+        try {
+            connectivityManager.registerNetworkCallback(networkRequest, networkCallback)
+        } catch (e: Exception) {
+            isNetworkAvailable = false
+        }
+    }
+    
+    override fun onCleared() {
+        super.onCleared()
+        connectivityManager.unregisterNetworkCallback(networkCallback)
+    }
+
+    private fun refreshCurrentList() {
+        when (currentListType) {
+            ListType.POPULAR -> getPopularMovies()
+            ListType.TOP_RATED -> getTopRatedMovies()
+            ListType.SAVED -> getSavedMovies()
+        }
+    }
 
     fun getTopRatedMovies() {
         viewModelScope.launch {
             movieListUiState = MovieListUiState.Loading
-            currentListType = "top_rated"
+            currentListType = ListType.TOP_RATED
 
             try {
-                // Try to get cached data first
-                val cachedMovies = moviesRepository.getCachedMovies("top_rated").first()
-                if (cachedMovies.isNotEmpty()) {
-                    movieListUiState = MovieListUiState.Success(cachedMovies)
-                    return@launch
+                val movies = if (isNetworkAvailable) {
+                    workManagerRepository.enqueueFetchMoviesWork("top_rated")
+                    workManagerRepository.enqueueCleanupWork("top_rated")
+
+                    moviesRepository.getTopRatedMovies().results.also {
+                        cachedMovies = it
+                        cachedListType = ListType.TOP_RATED
+                    }
+                } else {
+                    if (cachedListType == ListType.TOP_RATED && cachedMovies != null) {
+                        cachedMovies!!
+                    } else {
+                        throw IOException("No cached data available")
+                    }
                 }
 
-                // If no cache, fetch from network
-                workManagerRepository.enqueueFetchMoviesWork("top_rated")
-
-                val networkMovies = moviesRepository.getTopRatedMovies().results
-                movieListUiState = MovieListUiState.Success(networkMovies)
+                movieListUiState = MovieListUiState.Success(movies, isFromCache = !isNetworkAvailable)
 
             } catch (e: IOException) {
-                // Handle offline case
                 val fallback = moviesRepository.getCachedMovies("top_rated").first()
                 movieListUiState = if (fallback.isNotEmpty()) {
-                    MovieListUiState.Success(fallback)
+                    MovieListUiState.Success(fallback, isFromCache = true)
                 } else {
                     MovieListUiState.Error
                 }
@@ -103,6 +170,7 @@ class MovieDBViewModel(
             }
         }
     }
+
 
 //    fun getTopRatedMovies() {
 //        viewModelScope.launch {
@@ -120,19 +188,40 @@ class MovieDBViewModel(
     fun getPopularMovies() {
         viewModelScope.launch {
             movieListUiState = MovieListUiState.Loading
+            currentListType = ListType.POPULAR
 
-            workManagerRepository.enqueueFetchMoviesWork("popular")
-            workManagerRepository.enqueueCleanupWork("popular")
+            try {
+                val movies = if (isNetworkAvailable) {
+                    workManagerRepository.enqueueFetchMoviesWork("popular")
+                    workManagerRepository.enqueueCleanupWork("popular")
 
-            movieListUiState = try {
-                MovieListUiState.Success(moviesRepository.getPopularMovies().results)
+                    moviesRepository.getPopularMovies().results.also {
+                        cachedMovies = it
+                        cachedListType = ListType.POPULAR
+                    }
+                } else {
+                    if (cachedListType == ListType.POPULAR && cachedMovies != null) {
+                        cachedMovies!!
+                    } else {
+                        throw IOException("No cached data available")
+                    }
+                }
+
+                movieListUiState = MovieListUiState.Success(movies, isFromCache = !isNetworkAvailable)
+
             } catch (e: IOException) {
-                MovieListUiState.Error
+                val fallback = moviesRepository.getCachedMovies("popular").first()
+                movieListUiState = if (fallback.isNotEmpty()) {
+                    MovieListUiState.Success(fallback, isFromCache = true)
+                } else {
+                    MovieListUiState.Error
+                }
             } catch (e: HttpException) {
-                MovieListUiState.Error
+                movieListUiState = MovieListUiState.Error
             }
         }
     }
+
 
 //    fun getPopularMovies() {
 //        viewModelScope.launch { //launch coroutine using viewModelScope.launch
@@ -193,6 +282,7 @@ class MovieDBViewModel(
 
     fun getMovieReviews(movieId: Long) {
         viewModelScope.launch {
+            currentMovieId = movieId
             reviewsUiState = ReviewsUiState.Loading
             reviewsUiState = try {
                 ReviewsUiState.Success(moviesRepository.getMovieReviews(movieId).results)
@@ -206,6 +296,7 @@ class MovieDBViewModel(
 
     fun getMovieVideos(movieId: Long) {
         viewModelScope.launch {
+            currentMovieId = movieId
             println("Fetching videos for movieId=$movieId using API key: ${Constants.API_KEY}")
             videosUiState = VideosUiState.Loading
             videosUiState = try {
@@ -235,10 +326,13 @@ class MovieDBViewModel(
     }
 
     fun getSavedMovies() {
+        currentListType = ListType.SAVED
+        cachedMovies = null
+        cachedListType = null
         viewModelScope.launch {
             movieListUiState = MovieListUiState.Loading
             movieListUiState = try {
-                MovieListUiState.Success(savedMoviesRepository.getSavedMovies())
+                MovieListUiState.Success(savedMoviesRepository.getSavedMovies(), isFromCache = true)
             } catch (e: IOException) {
                 MovieListUiState.Error
             } catch (e: HttpException) {
@@ -246,6 +340,7 @@ class MovieDBViewModel(
             }
         }
     }
+
 
     fun saveMovie(movie: Movie){
         viewModelScope.launch {
@@ -268,11 +363,13 @@ class MovieDBViewModel(
                 val moviesRepository = application.container.moviesRepository
                 val savedMoviesRepository = application.container.savedMoviesRepository
                 val workManagerRepository = WorkManagerRepository(application.applicationContext)
+                val connectivityManager = application.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
                 MovieDBViewModel(
                     moviesRepository = moviesRepository,
                     savedMoviesRepository = savedMoviesRepository,
-                    workManagerRepository = workManagerRepository
+                    workManagerRepository = workManagerRepository,
+                    connectivityManager = connectivityManager
                 )
             }
         }
