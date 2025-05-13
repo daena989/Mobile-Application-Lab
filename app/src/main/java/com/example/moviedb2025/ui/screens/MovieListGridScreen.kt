@@ -76,7 +76,6 @@ fun MovieListGridScreen(
     }
 }
 
-
 @Composable
 fun MovieListGridItemCard(
     movie: Movie,
@@ -128,7 +127,6 @@ fun MovieListGridItemCard(
     }
 }
 
-
 //@Preview(showBackground = true)
 //@Composable
 //fun MovieListGridItemCardPreview() {
@@ -154,4 +152,3 @@ fun MovieListGridItemCard(
 //        )
 //    }
 //}
-

@@ -8,7 +8,7 @@ import androidx.room.TypeConverters
 import com.example.moviedb2025.models.CachedMovie
 import com.example.moviedb2025.models.Movie
 
-@Database(entities = [Movie::class, CachedMovie::class], version = 1, exportSchema = false)
+@Database(entities = [Movie::class, CachedMovie::class], version = 2, exportSchema = false)
 @TypeConverters(Converters::class) // Room doesn't directly support List<Int>, you'll need a Type Converter to handle it.
 abstract class MovieDatabase : RoomDatabase() {
 

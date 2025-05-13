@@ -30,7 +30,7 @@ fun CachedMovie.toMovie(): Movie {
         backdropPath = backdrop_path,
         releaseDate = release_date ?: "",
         overview = overview ?: "",
-        genresIds = genres.map { it.id },
+        genreIds = genres.map { it.id },
         homepage = null,
         imdbId = null,
         type = viewType

@@ -18,8 +18,7 @@ import com.example.moviedb2025.models.getGenreNames
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun GenreChips(genreIds: List<Int>, modifier: Modifier = Modifier) {
-    val genreNames = getGenreNames(genreIds) // Map IDs to names
+fun GenreChips(genreNames: List<String>, modifier: Modifier = Modifier) {
     FlowRow(
         modifier = modifier
             .fillMaxWidth()
@@ -54,5 +53,5 @@ fun GenreChip(genre: String) {
 @Preview(showBackground = true)
 @Composable
 fun PreviewGenreChips() {
-    GenreChips(genreIds = listOf(28, 12, 35)) // Should display "Action", "Adventure", "Comedy"
+    GenreChips(genreNames = listOf("Action", "Adventure", "Comedy"))
 }
