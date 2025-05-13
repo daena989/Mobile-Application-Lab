@@ -66,16 +66,11 @@ dependencies {
     implementation(libs.logging.interceptor)
     implementation(libs.retrofit)
 
-    //ExoPlayer
-    implementation(libs.androidx.media3.exoplayer)
-    implementation(libs.androidx.media3.ui)
-
+    //YouTube Android Player Library
+    implementation(libs.core)
 
     implementation(libs.retrofit2.kotlinx.serialization.converter)
     implementation(libs.logging.interceptor)
-
-    //YouTube Android Player Library
-    implementation(libs.core)
 
     //Room
     implementation(libs.androidx.room.runtime)

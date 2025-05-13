@@ -268,13 +268,11 @@ class MovieDBViewModel(
     fun getMovieVideos(movieId: Long) {
         viewModelScope.launch {
             currentMovieId = movieId
-            println("Fetching videos for movieId=$movieId using API key: ${Constants.API_KEY}")
+            println("Fetching videos for movieId=$movieId")
             videosUiState = VideosUiState.Loading
             videosUiState = try {
                 val videos = moviesRepository.getMovieVideos(movieId).results
-
                 val acceptedTypes = listOf("Trailer", "Teaser", "Clip", "Featurette")
-
                 val youtubeVideo = videos.firstOrNull {
                     it.site.equals("YouTube", ignoreCase = true) &&
                             acceptedTypes.contains(it.type)
