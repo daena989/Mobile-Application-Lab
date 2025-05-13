@@ -60,7 +60,7 @@ class MovieDBViewModel(
     private val moviesRepository: MoviesRepository,
     private val savedMoviesRepository: SavedMoviesRepository,
     private val workManagerRepository: WorkManagerRepository,
-    private val connectivityManager: ConnectivityManager,
+    private val connectivityManager: ConnectivityManager
 ) : ViewModel() {
 
     var movieListUiState: MovieListUiState by mutableStateOf(MovieListUiState.Loading)
@@ -78,6 +78,10 @@ class MovieDBViewModel(
     var isNetworkAvailable by mutableStateOf(false)
         private set
 
+    // No need for sealed interface as only instant local memory update
+    var favoriteMovies: List<Movie> by mutableStateOf(emptyList())
+        private set
+
     private var cachedMovies: List<Movie>? = null
     private var cachedListType: ListType? = null
     private var currentMovieId: Long? = null
@@ -88,7 +92,6 @@ class MovieDBViewModel(
         .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
         .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
         .build()
-
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: Network) {
             super.onAvailable(network)
@@ -100,7 +103,6 @@ class MovieDBViewModel(
                 getMovieVideos(it)
             }
         }
-
         override fun onLost(network: Network) {
             super.onLost(network)
             isNetworkAvailable = false
@@ -113,27 +115,13 @@ class MovieDBViewModel(
         getPopularMovies()
     }
 
-    private fun registerNetworkCallback() {
-        try {
-            connectivityManager.registerNetworkCallback(networkRequest, networkCallback)
-        } catch (e: Exception) {
-            isNetworkAvailable = false
-        }
-    }
-    
+    //Lifecycle
     override fun onCleared() {
         super.onCleared()
         connectivityManager.unregisterNetworkCallback(networkCallback)
     }
 
-    private fun refreshCurrentList() {
-        when (currentListType) {
-            ListType.POPULAR -> getPopularMovies()
-            ListType.TOP_RATED -> getTopRatedMovies()
-            ListType.SAVED -> getSavedMovies()
-        }
-    }
-
+    //Movie Lists
     fun getTopRatedMovies() {
         viewModelScope.launch {
             movieListUiState = MovieListUiState.Loading
@@ -170,21 +158,6 @@ class MovieDBViewModel(
             }
         }
     }
-
-
-//    fun getTopRatedMovies() {
-//        viewModelScope.launch {
-//            movieListUiState = MovieListUiState.Loading
-//            movieListUiState = try {
-//                MovieListUiState.Success(moviesRepository.getTopRatedMovies().results)
-//            } catch (e: IOException) {
-//                MovieListUiState.Error
-//            } catch (e: HttpException) {
-//                MovieListUiState.Error
-//            }
-//        }
-//    }
-
     fun getPopularMovies() {
         viewModelScope.launch {
             movieListUiState = MovieListUiState.Loading
@@ -221,21 +194,23 @@ class MovieDBViewModel(
             }
         }
     }
+    fun getSavedMovies() {
+        currentListType = ListType.SAVED
+        cachedMovies = null
+        cachedListType = null
+        viewModelScope.launch {
+            movieListUiState = MovieListUiState.Loading
+            movieListUiState = try {
+                MovieListUiState.Success(savedMoviesRepository.getSavedMovies(), isFromCache = true)
+            } catch (e: IOException) {
+                MovieListUiState.Error
+            } catch (e: HttpException) {
+                MovieListUiState.Error
+            }
+        }
+    }
 
-
-//    fun getPopularMovies() {
-//        viewModelScope.launch { //launch coroutine using viewModelScope.launch
-//            movieListUiState = MovieListUiState.Loading
-//            movieListUiState = try {
-//                MovieListUiState.Success(moviesRepository.getPopularMovies().results)
-//            } catch (e: IOException) {
-//                MovieListUiState.Error
-//            } catch (e: HttpException) {
-//                MovieListUiState.Error
-//            }
-//        }
-//    }
-
+    //Movie Details
     fun setSelectedMovie(movie: Movie) {
         viewModelScope.launch {
             selectedMovieUiState = SelectedMovieUiState.Loading
@@ -261,25 +236,6 @@ class MovieDBViewModel(
             }
         }
     }
-
-
-
-    // NEW: List of favorite movies
-    open var favoriteMovies: List<Movie> by mutableStateOf(emptyList()) // No need for sealed interface as only instant local memory update
-        private set
-
-    // NEW: Add movie to favorites
-    fun addToFavorites(movie: Movie) {
-        if (favoriteMovies.none { it.id == movie.id }) {
-            favoriteMovies = favoriteMovies + movie
-        }
-    }
-
-    // NEW: Remove movie from favorites
-    fun removeFromFavorites(movie: Movie) {
-        favoriteMovies = favoriteMovies.filterNot { it.id == movie.id }
-    }
-
     fun getMovieReviews(movieId: Long) {
         viewModelScope.launch {
             currentMovieId = movieId
@@ -293,7 +249,6 @@ class MovieDBViewModel(
             }
         }
     }
-
     fun getMovieVideos(movieId: Long) {
         viewModelScope.launch {
             currentMovieId = movieId
@@ -325,34 +280,43 @@ class MovieDBViewModel(
         }
     }
 
-    fun getSavedMovies() {
-        currentListType = ListType.SAVED
-        cachedMovies = null
-        cachedListType = null
-        viewModelScope.launch {
-            movieListUiState = MovieListUiState.Loading
-            movieListUiState = try {
-                MovieListUiState.Success(savedMoviesRepository.getSavedMovies(), isFromCache = true)
-            } catch (e: IOException) {
-                MovieListUiState.Error
-            } catch (e: HttpException) {
-                MovieListUiState.Error
-            }
-        }
-    }
-
-
+    //Storage
     fun saveMovie(movie: Movie){
         viewModelScope.launch {
             savedMoviesRepository.insertMovie(movie)
             selectedMovieUiState = SelectedMovieUiState.Success(movie, true)
         }
     }
-
     fun deleteMovie(movie: Movie){
         viewModelScope.launch {
             savedMoviesRepository.deleteMovie( movie)
             selectedMovieUiState = SelectedMovieUiState.Success(movie, true)
+        }
+    }
+
+    //Favourite List
+    fun addToFavorites(movie: Movie) {
+        if (favoriteMovies.none { it.id == movie.id }) {
+            favoriteMovies = favoriteMovies + movie
+        }
+    }
+    fun removeFromFavorites(movie: Movie) {
+        favoriteMovies = favoriteMovies.filterNot { it.id == movie.id }
+    }
+
+    //Network Tracking
+    private fun registerNetworkCallback() {
+        try {
+            connectivityManager.registerNetworkCallback(networkRequest, networkCallback)
+        } catch (e: Exception) {
+            isNetworkAvailable = false
+        }
+    }
+    private fun refreshCurrentList() {
+        when (currentListType) {
+            ListType.POPULAR -> getPopularMovies()
+            ListType.TOP_RATED -> getTopRatedMovies()
+            ListType.SAVED -> getSavedMovies()
         }
     }
 
